@@ -1,11 +1,15 @@
 // src/App.tsx
 
+import { hc } from "hono/client";
 import { useState } from "react";
+import type { AppType } from "../worker";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import cloudflareLogo from "./assets/Cloudflare_Logo.svg";
 import honoLogo from "./assets/hono.svg";
 import "./App.css";
+
+const client = hc<AppType>("/");
 
 function App() {
 	const [count, setCount] = useState(0);
@@ -46,9 +50,10 @@ function App() {
 			<div className="card">
 				<button
 					onClick={() => {
-						fetch("/api/")
-							.then((res) => res.json() as Promise<{ name: string }>)
-							.then((data) => setName(data.name));
+						client.api.index.$get().then(async (res) => {
+							const data = await res.json();
+							setName(data.name);
+						});
 					}}
 					aria-label="get name"
 				>
