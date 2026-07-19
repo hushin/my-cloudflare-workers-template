@@ -33,7 +33,7 @@ function App() {
       </div>
       <h1>Vite + React + Hono + Cloudflare</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)} aria-label="increment">
+        <button onClick={() => setCount((c) => c + 1)} aria-label="increment">
           count is {count}
         </button>
         <p>
@@ -43,7 +43,7 @@ function App() {
       <div className="card">
         <button
           onClick={() => {
-            client.api.index.$get().then(async (res) => {
+            void client.api.index.$get().then(async (res) => {
               const data = await res.json();
               setName(data.name);
             });
