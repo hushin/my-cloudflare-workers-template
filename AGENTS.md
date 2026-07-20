@@ -76,4 +76,4 @@ API 実装は以下2つのパターンで型安全を達成する。詳細は `d
 
 ## 詳細情報
 
-特定技術の詳細は agent skills を使用する（`cloudflare`, `hono`, `workers-best-practices`, `wrangler`, `durable-objects`）。
+特定技術の詳細は agent skills を使用する（`cloudflare`, `hono`, `workers-best-practices`, `wrangler`, `durable-objects`, `testing`）。

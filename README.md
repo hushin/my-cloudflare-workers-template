@@ -16,6 +16,7 @@
 | ビルドツール   | Vite 7, @cloudflare/vite-plugin, @tanstack/router-plugin |
 | デプロイ       | Wrangler 4, Cloudflare Workers                           |
 | Lint / Format  | oxlint, oxfmt                                            |
+| テスト         | Vitest, @cloudflare/vitest-pool-workers                  |
 | Git hooks      | lefthook                                                 |
 | パッケージ管理 | pnpm                                                     |
 | バージョン管理 | mise                                                     |
@@ -65,6 +66,9 @@ pnpm lint             # lint チェック
 pnpm lint:fix         # lint 自動修正
 pnpm fmt              # フォーマット
 pnpm fmt:check        # フォーマットチェック
+
+# テスト
+pnpm test             # vitest run（テスト実行）
 
 # その他
 pnpm cf-typegen       # Wrangler の型定義を再生成
