@@ -6,16 +6,19 @@
 
 ## Tech Stack
 
-| カテゴリ       | 技術                            |
-| -------------- | ------------------------------- |
-| フロントエンド | React 19, TypeScript            |
-| バックエンド   | Hono 4（Workers 上で動作）      |
-| ビルドツール   | Vite 7, @cloudflare/vite-plugin |
-| デプロイ       | Wrangler 4, Cloudflare Workers  |
-| Lint / Format  | oxlint, oxfmt                   |
-| Git hooks      | lefthook                        |
-| パッケージ管理 | pnpm                            |
-| バージョン管理 | mise                            |
+| カテゴリ       | 技術                                                     |
+| -------------- | -------------------------------------------------------- |
+| フロントエンド | React 19, TypeScript                                     |
+| ルーティング   | TanStack Router（file-based routing）                    |
+| フォーム       | TanStack Form                                            |
+| データ取得     | TanStack Query                                           |
+| バックエンド   | Hono 4（Workers 上で動作）, zod, @hono/zod-validator     |
+| ビルドツール   | Vite 7, @cloudflare/vite-plugin, @tanstack/router-plugin |
+| デプロイ       | Wrangler 4, Cloudflare Workers                           |
+| Lint / Format  | oxlint, oxfmt                                            |
+| Git hooks      | lefthook                                                 |
+| パッケージ管理 | pnpm                                                     |
+| バージョン管理 | mise                                                     |
 
 ## ディレクトリ構造
 
@@ -23,10 +26,14 @@
 .
 ├── src/
 │   ├── worker/          # Hono Worker（API routes）
-│   │   └── index.ts
+│   │   ├── index.ts
+│   │   ├── routes/      # Hono route（method chain）
+│   │   ├── schemas/     # zod スキーマ
+│   │   └── repositories/# データアクセス
 │   └── react-app/       # React フロントエンド
 │       ├── main.tsx
-│       ├── App.tsx
+│       ├── client.ts    # hc クライアント
+│       ├── routes/      # TanStack Router file-based routes
 │       └── assets/
 ├── public/              # 静的アセット
 ├── dist/                # ビルド出力

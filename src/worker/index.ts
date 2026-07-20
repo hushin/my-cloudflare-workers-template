@@ -1,6 +1,10 @@
 import { Hono } from 'hono';
+import exampleTodoRoute from './routes/example-todo';
 
-const app = new Hono<{ Bindings: Env }>().get('/api/', (c) => c.json({ name: 'Cloudflare' }));
+const app = new Hono<{ Bindings: Env }>()
+  .basePath('/api')
+  .get('/', (c) => c.json({ name: 'Cloudflare' }))
+  .route('/example-todo', exampleTodoRoute);
 
 // run_worker_first: ["/api/*"] により /api/* だけが Worker に到達する
 export default {
