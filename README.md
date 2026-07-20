@@ -1,90 +1,63 @@
-# React + Vite + Hono + Cloudflare Workers
+# my-cloudflare-workers-template
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/vite-react-template)
+React + Hono + Cloudflare Workers の個人用Webアプリ(SPA)テンプレート
 
-This template provides a minimal setup for building a React application with TypeScript and Vite, designed to run on Cloudflare Workers. It features hot module replacement, Oxlint integration, and the flexibility of Workers deployments.
+## Tech Stack
 
-![React + TypeScript + Vite + Cloudflare Workers](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/fc7b4b62-442b-4769-641b-ad4422d74300/public)
+| カテゴリ       | 技術                            |
+| -------------- | ------------------------------- |
+| フロントエンド | React 19, TypeScript            |
+| バックエンド   | Hono 4 (Workers上で動作)        |
+| ビルドツール   | Vite 7, @cloudflare/vite-plugin |
+| デプロイ       | Wrangler 4, Cloudflare Workers  |
+| Lint/Format    | oxlint, oxfmt                   |
+| Git hooks      | lefthook                        |
+| パッケージ管理 | pnpm                            |
+| バージョン管理 | mise                            |
 
-<!-- dash-content-start -->
+## ディレクトリ構造
 
-🚀 Supercharge your web development with this powerful stack:
-
-- [**React**](https://react.dev/) - A modern UI library for building interactive interfaces
-- [**Vite**](https://vite.dev/) - Lightning-fast build tooling and development server
-- [**Hono**](https://hono.dev/) - Ultralight, modern backend framework
-- [**Cloudflare Workers**](https://developers.cloudflare.com/workers/) - Edge computing platform for global deployment
-
-### ✨ Key Features
-
-- 🔥 Hot Module Replacement (HMR) for rapid development
-- 📦 TypeScript support out of the box
-- 🛠️ Oxlint configuration included
-- ⚡ Zero-config deployment to Cloudflare's global network
-- 🎯 API routes with Hono's elegant routing
-- 🔄 Full-stack development setup
-- 🔎 Built-in Observability to monitor your Worker
-
-Get started in minutes with local development or deploy directly via the Cloudflare dashboard. Perfect for building modern, performant web applications at the edge.
-
-<!-- dash-content-end -->
-
-## Getting Started
-
-To start a new project with this template, run:
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/vite-react-template
+```
+.
+├── src/
+│   ├── worker/          # Hono Worker (API routes)
+│   │   └── index.ts
+│   └── react-app/       # React フロントエンド
+│       ├── main.tsx
+│       ├── App.tsx
+│       └── assets/
+├── public/              # 静的アセット
+├── dist/                # ビルド出力
+├── docs/                # ドキュメント
+├── wrangler.json        # Wrangler 設定
+├── vite.config.ts
+├── tsconfig.*.json
+└── mise.toml            # ツールバージョン管理
 ```
 
-A live deployment of this template is available at:
-[https://react-vite-template.templates.workers.dev](https://react-vite-template.templates.workers.dev)
-
-## Development
-
-Install dependencies:
+## よく使うコマンド
 
 ```bash
-npm install
+# 環境セットアップ
+mise install          # Node, pnpm などのバージョンを揃える
+mise run setup        # pnpm install + lefthook install
+
+# 開発
+pnpm dev              # 開発サーバー起動 (localhost:5173)
+
+# ビルド & デプロイ
+pnpm build            # プロダクションビルド
+pnpm preview          # ビルドしたものをローカルプレビュー
+pnpm deploy           # Cloudflare Workers にデプロイ
+pnpm check            # 型チェック + ビルド + dry-run
+
+# Lint / Format
+pnpm lint             # lint チェック
+pnpm lint:fix         # lint 自動修正
+pnpm fmt              # フォーマット
+pnpm fmt:check        # フォーマットチェック
+
+# その他
+pnpm cf-typegen       # Wrangler の型定義を再生成
+pnpm wrangler tail     # Workers のリアルタイムログ
 ```
-
-Start the development server with:
-
-```bash
-npm run dev
-```
-
-Your application will be available at [http://localhost:5173](http://localhost:5173).
-
-## Production
-
-Build your project for production:
-
-```bash
-npm run build
-```
-
-Preview your build locally:
-
-```bash
-npm run preview
-```
-
-Deploy your project to Cloudflare Workers:
-
-```bash
-npm run build && npm run deploy
-```
-
-Monitor your workers:
-
-```bash
-npx wrangler tail
-```
-
-## Additional Resources
-
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
-- [Vite Documentation](https://vitejs.dev/guide/)
-- [React Documentation](https://reactjs.org/)
-- [Hono Documentation](https://hono.dev/)
