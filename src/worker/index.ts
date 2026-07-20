@@ -3,7 +3,7 @@ import exampleTodoRoute from './routes/example-todo';
 
 const app = new Hono<{ Bindings: Env }>()
   .basePath('/api')
-  .get('/', (c) => c.json({ name: 'Cloudflare' }))
+  .get('/health', (c) => c.json({ status: 'ok' }))
   .route('/example-todo', exampleTodoRoute);
 
 // run_worker_first: ["/api/*"] により /api/* だけが Worker に到達する
@@ -18,4 +18,5 @@ export default {
   },
 } satisfies ExportedHandler<Env>;
 
+export { app };
 export type AppType = typeof app;
