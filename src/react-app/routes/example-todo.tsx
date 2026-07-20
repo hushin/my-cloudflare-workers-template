@@ -3,6 +3,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import type { InferResponseType } from 'hono/client';
 import { useState } from 'react';
+import { Badge } from '@/react-app/components/ui/badge';
+import { Button } from '@/react-app/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/react-app/components/ui/card';
+import { Input } from '@/react-app/components/ui/input';
+import { Separator } from '@/react-app/components/ui/separator';
 import { client } from '@/react-app/client';
 import { exampleTodoCreateSchema, exampleTodoUpdateSchema } from '@/schemas/example-todo';
 
@@ -68,66 +79,97 @@ function ExampleTodoPage() {
   });
 
   return (
-    <div className="page">
-      <p>
-        <Link to="/">Home</Link>
-      </p>
-      <h1>Example Todo</h1>
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-2">
+        <h1 className="font-heading text-3xl font-bold tracking-tight">Example Todo</h1>
+        <p className="text-muted-foreground">
+          <Link to="/" className="underline underline-offset-4 hover:text-foreground">
+            Home
+          </Link>{' '}
+          に戻る
+        </p>
+      </section>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          void createForm.handleSubmit();
-        }}
-      >
-        <createForm.Field
-          name="title"
-          validators={{
-            onChange: exampleTodoCreateSchema.shape.title,
-          }}
-        >
-          {(field) => (
-            <>
-              <input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="New todo"
-              />
-              {field.state.meta.errors.length > 0 && (
-                <span>{field.state.meta.errors.map((e) => getErrorMessage(e)).join(', ')}</span>
+      <Card>
+        <CardHeader>
+          <CardTitle>新規 Todo</CardTitle>
+          <CardDescription>タイトルを入力して追加してください。</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              void createForm.handleSubmit();
+            }}
+            className="flex flex-col gap-4"
+          >
+            <createForm.Field
+              name="title"
+              validators={{
+                onChange: exampleTodoCreateSchema.shape.title,
+              }}
+            >
+              {(field) => (
+                <div className="flex flex-col gap-2">
+                  <Input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="New todo"
+                    aria-invalid={field.state.meta.errors.length > 0}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-sm text-destructive">
+                      {field.state.meta.errors.map((e) => getErrorMessage(e)).join(', ')}
+                    </p>
+                  )}
+                </div>
               )}
-            </>
-          )}
-        </createForm.Field>
-        <button type="submit">Add</button>
-      </form>
+            </createForm.Field>
+            <div className="flex items-center gap-2">
+              <Button type="submit" disabled={createMutation.isPending}>
+                Add
+              </Button>
+              {createMutation.isPending && <Badge variant="secondary">Adding...</Badge>}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
-      {todosQuery.isPending && <p>Loading...</p>}
-      {todosQuery.isError && <p>Failed to load todos.</p>}
+      <Separator />
 
-      <ul>
+      <div className="flex flex-col gap-4">
+        {todosQuery.isPending && <p className="text-muted-foreground">Loading...</p>}
+        {todosQuery.isError && <p className="text-destructive">Failed to load todos.</p>}
+
         {todosQuery.data?.map((todo) =>
           editingId === todo.id ? (
-            <EditTodoRow key={todo.id} todo={todo} onDone={() => setEditingId(null)} />
+            <EditTodoCard key={todo.id} todo={todo} onDone={() => setEditingId(null)} />
           ) : (
-            <li key={todo.id}>
-              {todo.title}
-              <button type="button" onClick={() => setEditingId(todo.id)}>
-                Edit
-              </button>
-              <button type="button" onClick={() => deleteMutation.mutate(todo.id)}>
-                Delete
-              </button>
-            </li>
+            <Card key={todo.id} className="flex justify-between p-4">
+              <span className="font-medium">{todo.title}</span>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setEditingId(todo.id)}>
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => deleteMutation.mutate(todo.id)}
+                  disabled={deleteMutation.isPending && deleteMutation.variables === todo.id}
+                >
+                  Delete
+                </Button>
+              </div>
+            </Card>
           ),
         )}
-      </ul>
+      </div>
     </div>
   );
 }
 
-function EditTodoRow({ todo, onDone }: { todo: ExampleTodo; onDone: () => void }) {
+function EditTodoCard({ todo, onDone }: { todo: ExampleTodo; onDone: () => void }) {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
@@ -151,37 +193,47 @@ function EditTodoRow({ todo, onDone }: { todo: ExampleTodo; onDone: () => void }
   });
 
   return (
-    <li>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          void editForm.handleSubmit();
-        }}
-      >
-        <editForm.Field
-          name="title"
-          validators={{
-            onChange: exampleTodoUpdateSchema.shape.title,
+    <Card>
+      <CardContent className="pt-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void editForm.handleSubmit();
           }}
+          className="flex flex-col gap-4"
         >
-          {(field) => (
-            <>
-              <input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-              />
-              {field.state.meta.errors.length > 0 && (
-                <span>{field.state.meta.errors.map((e) => getErrorMessage(e)).join(', ')}</span>
-              )}
-            </>
-          )}
-        </editForm.Field>
-        <button type="submit">Save</button>
-        <button type="button" onClick={onDone}>
-          Cancel
-        </button>
-      </form>
-    </li>
+          <editForm.Field
+            name="title"
+            validators={{
+              onChange: exampleTodoUpdateSchema.shape.title,
+            }}
+          >
+            {(field) => (
+              <div className="flex flex-col gap-2">
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-sm text-destructive">
+                    {field.state.meta.errors.map((e) => getErrorMessage(e)).join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
+          </editForm.Field>
+          <div className="flex items-center gap-2">
+            <Button type="submit" size="sm" disabled={updateMutation.isPending}>
+              Save
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={onDone}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

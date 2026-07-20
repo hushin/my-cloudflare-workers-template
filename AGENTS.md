@@ -18,7 +18,8 @@ src/
     ├── main.tsx          # RouterProvider / QueryClientProvider の起点
     ├── client.ts          # hc<AppType> クライアント
     ├── routes/            # TanStack Router file-based routes（__root.tsx 含む）
-    └── assets/
+    ├── components/        # UI コンポーネント（shadcn/ui 含む）
+    └── lib/               # クライアント向けユーティリティ（cn など）
 ```
 
 - Workers entrypoint: `./src/worker/index.ts`（wrangler.json の `main` で指定）
@@ -28,7 +29,7 @@ src/
 
 ### テックスタック
 
-Cloudflare Workers / Hono 4 / React 19 + TypeScript + Vite 7 / TanStack Router（file-based routing）/ TanStack Form / TanStack Query / zod + @hono/zod-validator / oxlint + oxfmt
+Cloudflare Workers / Hono 4 / React 19 + TypeScript + Vite 7 / TanStack Router（file-based routing）/ TanStack Form / TanStack Query / shadcn/ui（base UI）+ Tailwind CSS v4 / zod + @hono/zod-validator / oxlint + oxfmt
 
 ## HOW — このプロジェクトでの作業方法
 
@@ -76,4 +77,4 @@ API 実装は以下2つのパターンで型安全を達成する。詳細は `d
 
 ## 詳細情報
 
-特定技術の詳細は agent skills を使用する（`cloudflare`, `hono`, `workers-best-practices`, `wrangler`, `durable-objects`, `testing`）。
+特定技術の詳細は agent skills を使用する（`cloudflare`, `hono`, `workers-best-practices`, `wrangler`, `durable-objects`, `testing`, `shadcn-ui`）。
