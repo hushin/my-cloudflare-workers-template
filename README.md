@@ -1,19 +1,21 @@
 # [プロジェクト名]
 
-[このアプリの概要説明]
+<!-- TODO: アプリのテンプレートなので書き換える -->
+
+[このアプリの概要説明を書く]
 
 ## Tech Stack
 
-| カテゴリ | 技術 |
-|---------|------|
-| フロントエンド | React 19, TypeScript |
-| バックエンド | Hono 4（Workers 上で動作） |
-| ビルドツール | Vite 7, @cloudflare/vite-plugin |
-| デプロイ | Wrangler 4, Cloudflare Workers |
-| Lint / Format | oxlint, oxfmt |
-| Git hooks | lefthook |
-| パッケージ管理 | pnpm |
-| バージョン管理 | mise |
+| カテゴリ       | 技術                            |
+| -------------- | ------------------------------- |
+| フロントエンド | React 19, TypeScript            |
+| バックエンド   | Hono 4（Workers 上で動作）      |
+| ビルドツール   | Vite 7, @cloudflare/vite-plugin |
+| デプロイ       | Wrangler 4, Cloudflare Workers  |
+| Lint / Format  | oxlint, oxfmt                   |
+| Git hooks      | lefthook                        |
+| パッケージ管理 | pnpm                            |
+| バージョン管理 | mise                            |
 
 ## ディレクトリ構造
 

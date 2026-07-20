@@ -2,6 +2,8 @@
 
 ## WHAT — プロジェクトの目的と構造
 
+<!-- TODO: アプリのテンプレートなので書き換える -->
+
 [このアプリの概要説明]
 
 ```
@@ -20,7 +22,7 @@ src/
 
 ### テックスタック
 
-Cloudflare Workers / Hono 4 / React 19 + TypeScript + Vite 7 / oxlint + oxfmt / [追加パッケージ]
+Cloudflare Workers / Hono 4 / React 19 + TypeScript + Vite 7 / oxlint + oxfmt
 
 ## HOW — このプロジェクトでの作業方法
 
@@ -44,8 +46,7 @@ pnpm preview          # ビルド後 vite preview
 ### コードスタイル
 
 - oxlint と oxfmt の設定に従う（pre-commit で lefthook により自動実行）
-- TypeScript strict mode
-- コミットメッセージは [Conventional Commits](https://www.conventionalcommits.org/ja/) に従う
+- コミットメッセージは Conventional Commits に従う
 - 型定義 `worker-configuration.d.ts` は `pnpm cf-typegen` で自動生成（手編集禁止）
 
 ### 環境変数
@@ -59,12 +60,6 @@ pnpm preview          # ビルド後 vite preview
 pnpm build && pnpm deploy
 ```
 
-## 詳細情報（Progressive Disclosure）
-
-タスクに応じて以下のファイルを読むこと。すべての情報を事前に知る必要はない。
-
-| ファイル            | 内容                         | 必要なタスク           |
-| ------------------- | ---------------------------- | ---------------------- |
-| `docs/`             | [プロジェクト固有の設計資料] | 初めて触る領域の変更   |
+## 詳細情報
 
 特定技術の詳細は agent skills を使用する（`cloudflare`, `hono`, `workers-best-practices`, `wrangler`, `durable-objects`）。
