@@ -1,26 +1,26 @@
-# my-cloudflare-workers-template
+# [プロジェクト名]
 
-React + Hono + Cloudflare Workers の個人用Webアプリ(SPA)テンプレート
+[このアプリの概要説明]
 
 ## Tech Stack
 
-| カテゴリ       | 技術                            |
-| -------------- | ------------------------------- |
-| フロントエンド | React 19, TypeScript            |
-| バックエンド   | Hono 4 (Workers上で動作)        |
-| ビルドツール   | Vite 7, @cloudflare/vite-plugin |
-| デプロイ       | Wrangler 4, Cloudflare Workers  |
-| Lint/Format    | oxlint, oxfmt                   |
-| Git hooks      | lefthook                        |
-| パッケージ管理 | pnpm                            |
-| バージョン管理 | mise                            |
+| カテゴリ | 技術 |
+|---------|------|
+| フロントエンド | React 19, TypeScript |
+| バックエンド | Hono 4（Workers 上で動作） |
+| ビルドツール | Vite 7, @cloudflare/vite-plugin |
+| デプロイ | Wrangler 4, Cloudflare Workers |
+| Lint / Format | oxlint, oxfmt |
+| Git hooks | lefthook |
+| パッケージ管理 | pnpm |
+| バージョン管理 | mise |
 
 ## ディレクトリ構造
 
 ```
 .
 ├── src/
-│   ├── worker/          # Hono Worker (API routes)
+│   ├── worker/          # Hono Worker（API routes）
 │   │   └── index.ts
 │   └── react-app/       # React フロントエンド
 │       ├── main.tsx
@@ -43,7 +43,7 @@ mise install          # Node, pnpm などのバージョンを揃える
 mise run setup        # pnpm install + lefthook install
 
 # 開発
-pnpm dev              # 開発サーバー起動 (localhost:5173)
+pnpm dev              # 開発サーバー起動（localhost:5173）
 
 # ビルド & デプロイ
 pnpm build            # プロダクションビルド
@@ -59,5 +59,5 @@ pnpm fmt:check        # フォーマットチェック
 
 # その他
 pnpm cf-typegen       # Wrangler の型定義を再生成
-pnpm wrangler tail     # Workers のリアルタイムログ
+npx wrangler tail     # Workers のリアルタイムログ
 ```
