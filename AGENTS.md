@@ -60,6 +60,13 @@ pnpm preview          # ビルド後 vite preview
 pnpm build && pnpm deploy
 ```
 
+### 型安全な Hono RPC の型付け
+
+`@typescript-eslint/no-unsafe-type-assertion` 違反を防ぐため、以下2つのパターンで型安全を達成する。詳細は `docs/hono-rpc-types.md` を参照。
+
+- **フロントエンド（レスポンス受信）**: `InferResponseType<typeof client.api.xxx.$get, 200>` で route のレスポンス型を直接導出し、`as unknown as T` を排除する
+- **Worker（リクエストバリデーション）**: `isRecord()` + `as unknown as T` ではなく `zValidator` + zod スキーマを使い、`c.req.valid("json")` で型安全に受け取る
+
 ## 詳細情報
 
 特定技術の詳細は agent skills を使用する（`cloudflare`, `hono`, `workers-best-practices`, `wrangler`, `durable-objects`）。
