@@ -47,6 +47,7 @@ pnpm lint:fix         # oxlint --fix
 pnpm fmt              # oxfmt
 pnpm cf-typegen       # wrangler types 生成（worker-configuration.d.ts）
 pnpm preview          # ビルド後 vite preview
+pnpm test             # vitest run（テスト実行）
 ```
 
 ### コードスタイル

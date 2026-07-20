@@ -5,7 +5,4 @@ pnpm = "11"
 
 [tasks.setup]
 description = "Install dependencies and set up git hooks"
-run = [
-  "pnpm install",
-  "lefthook install"
-]
+run = ["pnpm install", "lefthook install"]

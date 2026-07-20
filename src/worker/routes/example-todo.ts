@@ -44,4 +44,9 @@ const app = new Hono<{ Bindings: Env }>()
     return c.json({ id });
   });
 
+// テスト用: todos Map を初期化する
+export function resetTodos(): void {
+  todos.clear();
+}
+
 export default app;
