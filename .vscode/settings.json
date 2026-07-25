@@ -1,6 +1,10 @@
 {
   "files.associations": {
-    "wrangler.json": "jsonc"
+    "wrangler.json": "jsonc",
+    "*.css": "tailwindcss"
+  },
+  "editor.quickSuggestions": {
+    "strings": "on"
   },
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "explicit"

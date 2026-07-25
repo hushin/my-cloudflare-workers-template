@@ -6,7 +6,6 @@ description: Use when adding, moving, or reviewing screens/components under src/
 # FSD Skill — react-app のレイヤー構成
 
 `src/react-app` は [Feature-Sliced Design](https://fsd.how/)（[公式 skill](https://github.com/feature-sliced/skills/blob/master/feature-sliced-design/SKILL.md) 準拠）で構成する。
-ドキュメント参照は **fsd.how**（feature-sliced.design ではない）。
 
 現状導入済みのレイヤーは **app / pages / shared** の最小構成。widgets / features / entities は未導入
 （公式ガイドでも「シンプルに始める、必要になったら抽出する」が原則。複数箇所で実際に使われ、境界が安定するまで作らない）。
