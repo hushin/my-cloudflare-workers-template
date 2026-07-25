@@ -13,9 +13,20 @@ const columns = {
   title: exampleTodos.title,
 };
 
+/**
+ * 一覧の既定の上限。D1 は読み取り行数で課金されるうえ Worker のメモリ上限もあるので、
+ * 一覧系のクエリには必ず上限を掛ける（件数が増えるならページングを入れる）。
+ */
+const LIST_LIMIT = 100;
+
 export const exampleTodoRepository = {
-  list(db: Db): Promise<ExampleTodo[]> {
-    return db.select(columns).from(exampleTodos).orderBy(asc(exampleTodos.createdAt));
+  // created_at が同値のときのために id でタイブレークする
+  list(db: Db, limit: number = LIST_LIMIT): Promise<ExampleTodo[]> {
+    return db
+      .select(columns)
+      .from(exampleTodos)
+      .orderBy(asc(exampleTodos.createdAt), asc(exampleTodos.id))
+      .limit(limit);
   },
 
   async create(db: Db, title: string): Promise<ExampleTodo> {
