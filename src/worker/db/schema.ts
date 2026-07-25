@@ -10,3 +10,5 @@ export const exampleTodos = sqliteTable('example_todos', {
     .notNull()
     .default(sql`(current_timestamp)`),
 });
+
+export * from './auth-schema';
