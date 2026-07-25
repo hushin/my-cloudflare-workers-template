@@ -15,7 +15,7 @@ import {
 import { Input } from '@/react-app/components/ui/input';
 import { Separator } from '@/react-app/components/ui/separator';
 import { client } from '@/react-app/client';
-import { exampleTodoCreateSchema, exampleTodoUpdateSchema } from '@/schemas/example-todo';
+import { exampleTodoCreateSchema, exampleTodoUpdateSchema } from '@/shared/schemas/example-todo';
 
 function getErrorMessage(err: unknown): string {
   if (

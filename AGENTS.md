@@ -36,17 +36,19 @@ pnpm cf-typegen       # worker-configuration.d.ts 再生成
 src/
 ├── worker/            # Hono（Workers entrypoint は index.ts、wrangler.json の main）
 │   ├── routes/        # 機能ごとの route。index.ts に .route() でマウント
-│   ├── schemas/       # zod スキーマ（zValidator と併用）
 │   └── repositories/  # データアクセス
-└── react-app/         # React SPA（build 出力 ./dist/client、SPA mode）
-    ├── routes/        # TanStack Router file-based routes
-    ├── components/    # UI（shadcn/ui は components/ui/）
-    └── lib/           # cn / msw-hono など
+├── react-app/         # React SPA（build 出力 ./dist/client、SPA mode）
+│   ├── routes/        # TanStack Router file-based routes
+│   ├── components/    # UI（shadcn/ui は components/ui/）
+│   └── lib/           # cn / msw-hono など
+└── shared/            # サーバ・クライアント共通コード
+    └── schemas/       # zod スキーマ（zValidator と併用、react-app からもそのまま import）
 ```
 
 - 新規 API route → `src/worker/routes/` に追加し `src/worker/index.ts` に `.route()` でマウント
 - 新規ページ → `src/react-app/routes/` にファイル追加（file-based routing）
 - story / MSW モックは対象ファイルの隣に `*.stories.tsx` / `*.mock.ts`
+- サーバ・クライアント共通のロジック（zod スキーマ、型、定数など）は `src/shared/` に置く
 
 ## テストの書き分け
 

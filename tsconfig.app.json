@@ -28,5 +28,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/react-app", "src/schemas"]
+  "include": ["src/react-app", "src/shared"]
 }

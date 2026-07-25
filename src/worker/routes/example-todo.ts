@@ -4,7 +4,7 @@ import {
   exampleTodoCreateSchema,
   exampleTodoIdParamSchema,
   exampleTodoUpdateSchema,
-} from '@/schemas/example-todo';
+} from '@/shared/schemas/example-todo';
 
 type ExampleTodo = {
   id: string;
