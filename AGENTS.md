@@ -23,7 +23,7 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 pnpm dev              # Vite dev server（localhost:5173）
 pnpm check            # lint（型チェック込み）+ fmt:check + vite build + deploy --dry-run
 pnpm test             # vitest run（worker + storybook）
-pnpm lint             # oxlint（.oxlintrc.json の typeCheck で型エラーも出る）
+pnpm lint             # oxlint（.oxlintrc.json の typeCheck で型エラーも出る）+ steiger（FSD の構造 lint）
 pnpm build            # tsc -b + vite build
 pnpm storybook        # Storybook UI（localhost:6006）
 pnpm build && pnpm deploy   # デプロイ
@@ -37,18 +37,21 @@ src/
 ├── worker/            # Hono（Workers entrypoint は index.ts、wrangler.json の main）
 │   ├── routes/        # 機能ごとの route。index.ts に .route() でマウント
 │   └── repositories/  # データアクセス
-├── react-app/         # React SPA（build 出力 ./dist/client、SPA mode）
-│   ├── routes/        # TanStack Router file-based routes
-│   ├── components/    # UI（shadcn/ui は components/ui/）
-│   └── lib/           # cn / msw-hono など
-└── shared/            # サーバ・クライアント共通コード
+├── react-app/         # React SPA（build 出力 ./dist/client、SPA mode）Feature-Sliced Design 採用
+│   ├── app/           # FSD app レイヤー：bootstrap（provider・router 初期化）、layouts（RootLayout, Header）
+│   ├── routes/        # TanStack Router file-based routes（route 定義のみの薄いファイル。app/pages を参照）
+│   ├── pages/         # FSD pages レイヤー（画面本体、URL セグメント単位のスライス）
+│   └── shared/        # FSD shared レイヤー：ui（shadcn/ui）、lib（cn, msw-hono）、api（hc クライアント）
+└── shared/            # worker/react-app 共通コード（FSD の shared レイヤーとは別概念。混同注意）
     └── schemas/       # zod スキーマ（zValidator と併用、react-app からもそのまま import）
 ```
 
 - 新規 API route → `src/worker/routes/` に追加し `src/worker/index.ts` に `.route()` でマウント
-- 新規ページ → `src/react-app/routes/` にファイル追加（file-based routing）
-- story / MSW モックは対象ファイルの隣に `*.stories.tsx` / `*.mock.ts`
-- サーバ・クライアント共通のロジック（zod スキーマ、型、定数など）は `src/shared/` に置く
+- 新規ページ → `src/react-app/pages/<page-name>/ui/` に画面本体を実装し、`src/react-app/routes/` に薄い route 定義ファイルを追加して参照する（詳細は `fsd` skill）
+- `pages/<slice>/` の構成は FSD に従い、`steiger` (`pnpm lint` に含む) が構造違反を検出する
+- story / MSW モックは画面本体ファイルの隣（`pages/<slice>/ui/`）に `*.stories.tsx` / `*.mock.ts`
+- UI キット・共通ユーティリティ・API クライアントは `src/react-app/shared/` に置き、`index.ts`（public API）経由で import する
+- サーバ・クライアント共通のロジック（zod スキーマ、型、定数など）は `src/shared/` に置く（react-app の FSD shared レイヤーとは別物）
 
 ## テストの書き分け
 
@@ -77,3 +80,4 @@ UI のために `render()` する専用テストファイルは作らず story �
 | UI コンポーネント追加                                   | `shadcn-ui` skill, `docs/shadcn-ui-setup.md`                                |
 | Storybook テストの初回フレーキー                        | `docs/storybook-vitest-first-run-flake.md`                                  |
 | Cloudflare 全般                                         | `cloudflare`, `workers-best-practices`, `wrangler`, `durable-objects` skill |
+| react-app のレイヤー構成（Feature-Sliced Design）       | `fsd` skill                                                                 |

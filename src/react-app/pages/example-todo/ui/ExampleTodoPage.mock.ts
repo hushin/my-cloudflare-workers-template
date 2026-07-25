@@ -1,5 +1,5 @@
 import { HttpResponse, type RequestHandler, delay, http } from 'msw';
-import { createHandler } from '@/react-app/lib/msw-hono';
+import { createHandler } from '@/react-app/shared/lib';
 
 export type ExampleTodo = { id: string; title: string };
 

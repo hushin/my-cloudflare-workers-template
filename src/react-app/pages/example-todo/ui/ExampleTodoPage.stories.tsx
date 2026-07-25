@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 import { expect, waitFor } from 'storybook/test';
-import { ExampleTodoPage } from './example-todo';
-import { exampleTodoHandlers, resetExampleTodos } from './example-todo.mock';
+import { ExampleTodoPage } from './ExampleTodoPage';
+import { exampleTodoHandlers, resetExampleTodos } from './ExampleTodoPage.mock';
 
 const meta = {
   component: ExampleTodoPage,

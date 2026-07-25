@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 import { expect } from 'storybook/test';
-import { Header } from './header';
+import { Header } from './Header';
 
 const meta = {
   component: Header,

@@ -153,10 +153,10 @@ await expect(await canvas.findByText('done')).toBeVisible();
 `.storybook/preview.tsx` で `mswLoader` を有効化済み。ハンドラは story の
 `parameters.msw.handlers` に渡す。
 
-ハンドラは **`createHandler`（`@/react-app/lib/msw-hono`）で定義する**。パス・メソッド・
+ハンドラは **`createHandler`（`@/react-app/shared/lib`）で定義する**。パス・メソッド・
 input（param/query/json）・status・output がすべて Hono の `AppType` から型付けされるため、
 API を変えるとモックが型エラーになる。route の型に存在しない status（500 など）を返したいときだけ
-msw の `http` を直接使う。手本は `src/react-app/routes/example-todo.mock.ts`。
+msw の `http` を直接使う。手本は `src/react-app/pages/example-todo/ui/ExampleTodoPage.mock.ts`。
 
 ```ts
 export const exampleTodoHandlers = {
