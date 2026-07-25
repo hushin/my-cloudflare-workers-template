@@ -28,5 +28,5 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
   if (!c.get('user')) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
-  await next();
+  return next();
 });

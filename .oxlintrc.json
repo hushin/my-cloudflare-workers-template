@@ -7,7 +7,8 @@
     "worker-configuration.d.ts",
     "public",
     ".agents/skills/*/assets",
-    ".claude/skills/*/assets"
+    ".claude/skills/*/assets",
+    ".wt"
   ],
   "plugins": ["typescript", "unicorn", "oxc", "react"],
   "categories": {

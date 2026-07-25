@@ -47,6 +47,9 @@ better-auth の CLI に `cli.ts` を読ませて drizzle スキーマを吐か�
 npx @better-auth/cli@latest generate --config src/worker/auth/cli.ts --output src/worker/db/auth-schema.ts
 ```
 
+生成物はダブルクォートで出力されるので、続けて `pnpm fmt` を走らせる
+（そうしないと `fmt:check` が落ちる）。
+
 生成された `src/worker/db/auth-schema.ts` を `src/worker/db/schema.ts` から re-export して、
 drizzle-kit の対象に入れる。
 
@@ -87,7 +90,10 @@ const app = new Hono<AuthEnv>()
 - `.use('*', sessionMiddleware)` は auth のマウントより **後** に置く。Hono の middleware は
   登録順に効くので、こうすると OAuth コールバックで無駄な `getSession` が走らない
 
-### 5. route を保護する
+### 5. route を保護する（必要になったら / 必須手順ではない）
+
+**この手順は適用例**。既存の route に無条件で掛けるものではない（掛けると既存の route テストと
+story が 401 で壊れる）。ログインが要る route を実際に作るときに参照する。
 
 保護したい sub-app は `Hono<AuthEnv>` で型付けし、`requireAuth` を通す。
 
@@ -117,6 +123,10 @@ const app = new Hono<AuthEnv>().use('*', requireAuth).get('/', async (c) => {
 FSD の規約どおり、スライスからは `@/react-app/shared/api`（`index.ts` 経由）で import する。
 `shared/api/auth-client` を直接 import しない（`fsd` skill）。
 
+**配置後に `pnpm exec vite build` を一度走らせて `routeTree.gen.ts` を再生成する。**
+`pnpm check` は `lint` → `build` の順で走るので、再生成せずに `pnpm check` すると lint 段階で
+`'"/sign-in"' is not assignable to keyof FileRoutesByPath` として落ちる。
+
 ### 7. シークレットを設定
 
 `assets/.dev.vars.example` をリポジトリルートにコピーし、値を埋めた `.dev.vars` を作る
@@ -140,7 +150,13 @@ pnpm wrangler secret put GITHUB_CLIENT_ID
 pnpm wrangler secret put GITHUB_CLIENT_SECRET
 ```
 
-`BETTER_AUTH_URL` は秘密ではないので `wrangler.json` の `vars` に本番 URL を書く。
+`BETTER_AUTH_URL` は秘密ではないので `wrangler.json` の `vars` に本番 URL を書く。**これは必須**。
+`wrangler types` は `.dev.vars` があればそこからも `Env` を組み立てるため、`.dev.vars` を持つ
+自分の手元でだけ型が通り、clone 直後や CI で `Env` の形が変わってしまう。
+
+```jsonc
+"vars": { "BETTER_AUTH_URL": "https://<your-worker-domain>" }
+```
 
 最後に `pnpm cf-typegen` を実行して `Env` にこれらの変数を反映させる。
 
@@ -164,6 +180,28 @@ http.get('/api/auth/get-session', () => HttpResponse.json(null)); // 未ログ�
 
 ログイン状態で分岐する画面は、**ログイン済みと未ログインの両方の story を持つ**。
 
+### story 間でセッションが持ち越される問題
+
+`useSession` はモジュールスコープの nanostore にセッションをキャッシュし、購読が 0 になっても
+約 1 秒は store を生かしたままにする。story は連続実行されるので、**何もしないと 2 本目以降が
+1 本目のセッションを再利用して msw のモックを無視する**（SignedIn 単体では通るのに
+SignedOut と並べると落ちる、という形で出る）。
+
+`Header.mock.ts` の `refetchSession` を meta の `loaders` に指定して回避する。
+
+```ts
+export const refetchSession = () => {
+  authClient.$store.notify('$sessionSignal');
+};
+```
+
+```ts
+const meta = { component: Header, loaders: [refetchSession] } satisfies Meta<typeof Header>;
+```
+
+**`loaders` であることが必須**。`beforeEach` に置くと msw-storybook-addon の `mswLoader`
+（global loader）より前に走ってしまい、前の story のハンドラで再取得してしまう。
+
 ## ハマりどころ
 
 - **`createAuth` をモジュールトップで呼ぶと落ちる** — Workers ではモジュール評価時に `env` が無い
@@ -172,3 +210,7 @@ http.get('/api/auth/get-session', () => HttpResponse.json(null)); // 未ログ�
 - **callback URL の登録漏れ** — GitHub 側に本番 URL を登録し忘れると本番でだけログインが失敗する
 - **`.dev.vars` を作らずに `pnpm dev`** — `BETTER_AUTH_SECRET` が undefined でセッションが張れない
 - **plugin 追加後にスキーマ再生成を忘れる** — `options.ts` を変えたら手順 3 をやり直す
+- **`CardTitle` は heading ではない** — `shared/ui/card.tsx` の実体は `div`。
+  `getByRole('heading')` で拾わせたいなら中に `<h1>` を置く（`SignInPage.tsx` がその形）
+- **`routeTree.gen.ts` の再生成漏れ** — route ファイルを足したら build を一度通す。
+  `pnpm check` は lint が先なので、再生成前に走らせると型エラーで落ちる

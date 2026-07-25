@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 import { expect } from 'storybook/test';
 import { Header } from './Header';
-import { sessionHandlers } from './Header.mock';
+import { refetchSession, sessionHandlers } from './Header.mock';
 
 const meta = {
   component: Header,
+  // story ごとにセッションを再取得させる（詳細は Header.mock.ts）
+  loaders: [refetchSession],
 } satisfies Meta<typeof Header>;
 
 export default meta;

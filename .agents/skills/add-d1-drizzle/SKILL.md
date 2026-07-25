@@ -48,7 +48,7 @@ pnpm wrangler d1 create <database-name>
 - `migrations_dir` は drizzle.config.ts の `out` と一致させる。ズレると drizzle-kit が生成した
   SQL を wrangler が適用しない
 - 追記後に `pnpm cf-typegen` を実行して `Env` に `DB: D1Database` を反映させる
-  （`worker-configuration.d.ts` は生成物なので手編集しない）
+  （`worker-configuration.d.ts` は生成物なので手編集しない。lint / fmt からは除外済み）
 
 ### 3. drizzle.config.ts を置く
 
@@ -105,6 +105,13 @@ pnpm db:migrate:local   # ローカル（.wrangler 配下の SQLite）に適用
 `drizzle/` は **コミット対象**（`routeTree.gen.ts` と同じく生成物だが追跡する）。
 本番へは `pnpm db:migrate` で適用する。
 
+`drizzle/meta/*.json` は drizzle-kit のフォーマットで出力されるため、そのままだと `fmt:check` が
+落ちる。`routeTree.gen.ts` と同じ扱いで `.oxfmtrc.json` の `ignorePatterns` に追加する。
+
+```jsonc
+"ignorePatterns": ["src/react-app/routeTree.gen.ts", "drizzle/meta/*.json"]
+```
+
 ### 7. vitest を D1 対応にする
 
 `vitest.config.ts` に 3 箇所足す。ファイル全体を置き換えるのではなく差分で入れる。
@@ -141,8 +148,14 @@ export default defineConfig({
 });
 ```
 
-`readD1Migrations` は `@cloudflare/vitest-pool-workers` のルートから import する
-（古いドキュメントにある `@cloudflare/vitest-pool-workers/config` は 0.18 では存在しない）。
+0.18 で変わった点が 2 つあるので、古いドキュメントのコピペに注意する。
+
+- `readD1Migrations` は `@cloudflare/vitest-pool-workers` の **ルート**から import する
+  （`@cloudflare/vitest-pool-workers/config` は存在しない）
+- `cloudflare:test` の `env` は `Cloudflare.Env` 型で、**`ProvidedEnv` は廃止された**。
+  テスト専用バインディングの型は `declare module 'cloudflare:test'` ではなく
+  `declare global { namespace Cloudflare { interface Env { ... } } }` で足す
+  （`assets/src/worker/test/env.d.ts` がその形）
 
 テスト間の分離は `beforeEach` での `DELETE FROM <table>` で行う。
 詳細は `testing` skill の「D1 を使う route のテスト」を参照。

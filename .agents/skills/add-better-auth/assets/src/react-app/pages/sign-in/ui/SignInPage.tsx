@@ -13,7 +13,10 @@ export function SignInPage() {
     <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>サインイン</CardTitle>
+          {/* CardTitle は div なので、ページ見出しとして h1 を中に置く */}
+          <CardTitle>
+            <h1>サインイン</h1>
+          </CardTitle>
           <CardDescription>GitHub アカウントでログインします。</CardDescription>
         </CardHeader>
         <CardContent>

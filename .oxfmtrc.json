@@ -1,5 +1,5 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": ["src/react-app/routeTree.gen.ts"],
+  "ignorePatterns": ["src/react-app/routeTree.gen.ts", "worker-configuration.d.ts", ".wt"],
   "singleQuote": true
 }

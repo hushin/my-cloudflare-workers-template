@@ -28,8 +28,9 @@ export default defineConfig({
         test: {
           globals: true,
           // add-on skill の assets は「貼り付け用の実ファイル」であって
-          // このリポジトリでは解決できない import を含むため、テスト対象から外す
-          exclude: [...defaultExclude, '**/skills/*/assets/**'],
+          // このリポジトリでは解決できない import を含むため、テスト対象から外す。
+          // .wt は git worktree の置き場（別ブランチの作業ツリー）。
+          exclude: [...defaultExclude, '**/skills/*/assets/**', '**/.wt/**'],
         },
       },
       {
