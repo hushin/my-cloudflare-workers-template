@@ -31,7 +31,7 @@ src/
 
 ### テックスタック
 
-Cloudflare Workers / Hono 4 / React 19 + TypeScript + Vite 7 / TanStack Router（file-based routing）/ TanStack Form / TanStack Query / shadcn/ui（base UI）+ Tailwind CSS v4 / zod + @hono/zod-validator / oxlint + oxfmt
+Cloudflare Workers / Hono 4 / React 19 + TypeScript + Vite 7 / TanStack Router（file-based routing）/ TanStack Form / TanStack Query / shadcn/ui（base UI）+ Tailwind CSS v4 / zod + @hono/zod-validator / Vitest + @cloudflare/vitest-pool-workers + Storybook 10（interaction test, MSW）/ oxlint + oxfmt
 
 ## HOW — このプロジェクトでの作業方法
 
@@ -50,7 +50,8 @@ pnpm lint:fix         # oxlint --fix
 pnpm fmt              # oxfmt
 pnpm cf-typegen       # wrangler types 生成（worker-configuration.d.ts）
 pnpm preview          # ビルド後 vite preview
-pnpm test             # vitest run（テスト実行）
+pnpm test             # vitest run（worker テスト + storybook interaction test）
+pnpm storybook        # Storybook UI（localhost:6006）
 ```
 
 ### コードスタイル
@@ -70,6 +71,25 @@ pnpm test             # vitest run（テスト実行）
 pnpm build && pnpm deploy
 ```
 
+### テスト
+
+`pnpm test` は 2 つの vitest プロジェクトを実行する。
+
+- **worker**: `@cloudflare/vitest-pool-workers` で Workers runtime 上で `*.test.ts` を実行 → `testing` skill
+- **storybook**: `@storybook/addon-vitest` が story の `play` を vitest browser mode（chromium）で実行（`src/react-app/**/*.stories.tsx`）→ `storybook-testing` skill
+
+書き分けは以下の通り。
+
+| 対象                                            | 書き方                                           |
+| ----------------------------------------------- | ------------------------------------------------ |
+| Hono route                                      | `src/worker/**/*.test.ts`                        |
+| コンポーネント・ページの描画 / 操作 / 状態分岐  | `*.stories.tsx` の `play`（API は MSW でモック） |
+| util 関数・複雑な計算ロジック（DOM に触らない） | 対象の隣に `*.test.ts`                           |
+
+UI のために `render()` する専用テストファイルは作らず story にする。逆に純粋なロジックは
+UI 経由ではなく `*.test.ts` で直接テストしてよい。ただし `src/react-app/**/*.test.ts` も
+Workers runtime で走るため `document` / `window` は使えない（DOM が要るなら story にする）。
+
 ### 型安全な Hono RPC の型付け
 
 API 実装は以下2つのパターンで型安全を達成する。詳細は `docs/hono-rpc-types.md` を参照。
@@ -79,4 +99,4 @@ API 実装は以下2つのパターンで型安全を達成する。詳細は `d
 
 ## 詳細情報
 
-特定技術の詳細は agent skills を使用する（`cloudflare`, `hono`, `workers-best-practices`, `wrangler`, `durable-objects`, `testing`, `shadcn-ui`）。
+特定技術の詳細は agent skills を使用する（`cloudflare`, `hono`, `workers-best-practices`, `wrangler`, `durable-objects`, `testing`, `storybook-testing`, `shadcn-ui`）。

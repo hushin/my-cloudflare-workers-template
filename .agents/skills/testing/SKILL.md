@@ -7,6 +7,10 @@ description: Use when writing or modifying vitest tests for Cloudflare Workers +
 
 このプロジェクトでのテストの書き方・設定の規約。
 
+`*.test.ts` は置き場所にかかわらずこの worker プロジェクト（Workers runtime）で実行される。
+Hono route のテストに加えて、**DOM に触らない util 関数や計算ロジック**（`src/react-app/` 配下の
+ものを含む）もここに書く。DOM を伴う UI のテストは story として書く（`storybook-testing` skill）。
+
 ## 構成
 
 ```
