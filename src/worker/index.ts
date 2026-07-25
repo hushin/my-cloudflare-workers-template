@@ -1,8 +1,13 @@
 import { Hono } from 'hono';
+import { createAuth } from './auth';
+import { type AuthEnv, sessionMiddleware } from './auth/middleware';
 import exampleTodoRoute from './routes/example-todo';
 
-const app = new Hono<{ Bindings: Env }>()
+const app = new Hono<AuthEnv>()
   .basePath('/api')
+  // auth 自身のエンドポイントはセッション解決前に処理させる
+  .on(['GET', 'POST'], '/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
+  .use('*', sessionMiddleware)
   .get('/health', (c) => c.json({ status: 'ok' }))
   .route('/example-todo', exampleTodoRoute);
 
