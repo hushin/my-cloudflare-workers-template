@@ -1,11 +1,3 @@
-/**
- * /example-todo ページ用の MSW モック。
- * story / テストから `parameters.msw.handlers` に `exampleTodoHandlers.success` の
- * ように渡して使う。
- *
- * ハンドラは `createHandler`（`@/react-app/lib/msw-hono`）で定義しており、
- * パス・メソッド・input・output・status はすべて Hono の AppType から型付けされる。
- */
 import { HttpResponse, type RequestHandler, delay, http } from 'msw';
 import { createHandler } from '@/react-app/lib/msw-hono';
 
