@@ -5,6 +5,11 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'node:path';
 
+// Storybook はこの設定ファイルを取り込んで自身の preview ビルドにも使うが、
+// cloudflare() は preview を workerd ランタイム上で動かそうとして壊れるため、
+// vitest / storybook からの実行時は含めない。
+const isStorybookOrVitest = Boolean(process.env.VITEST || process.env.STORYBOOK);
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -21,6 +26,6 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
-    cloudflare(),
+    ...(isStorybookOrVitest ? [] : [cloudflare()]),
   ],
 });

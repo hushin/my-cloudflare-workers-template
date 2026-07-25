@@ -6,3 +6,21 @@ allowBuilds:
   esbuild: true
   workerd: true
   sharp: true
+  msw: true
+
+# @tanstack/react-router (^0.9.3) と @tanstack/react-form (^0.11.0) が
+# @tanstack/react-store の異なるバージョンを要求し、pnpm が2つ別々にインストールする。
+# 重複解決を Vite の optimizeDeps が扱えず Storybook のテストが初回だけ
+# フレーキーになるため、新しい方に一本化する（0.11.0 は 0.9.3 の上位互換）。
+overrides:
+  '@tanstack/react-store': ^0.11.0
+
+# Storybook の @storybook/tanstack-react フレームワークは vite の
+# optimizeDeps.include にベア指定（パスなし）で @tanstack/react-store と
+# use-sync-external-store/shim/with-selector を登録するが、pnpm の厳格な
+# node_modules 構造ではプロジェクトルートから解決できず、初回起動時に
+# Vite の依存最適化が一度失敗してリロードが走り vitest がフレーキーになる。
+# ルートの node_modules に公開ホイストしてトップレベルから解決可能にする。
+publicHoistPattern:
+  - '@tanstack/react-store'
+  - 'use-sync-external-store'
