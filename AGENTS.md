@@ -53,6 +53,20 @@ src/
 - UI キット・共通ユーティリティ・API クライアントは `src/react-app/shared/` に置き、`index.ts`（public API）経由で import する
 - サーバ・クライアント共通のロジック（zod スキーマ、型、定数など）は `src/shared/` に置く（react-app の FSD shared レイヤーとは別物）
 
+## オプション構成（add-on）
+
+**DB も認証もこのテンプレートには含まれていない**（要らないアプリがあるため既定では入れない）。
+必要になったら add-on skill で追加する。skill には手順と貼り付け用の実ファイル（`assets/`）が入っている。
+
+| 追加したいもの              | 適用する skill    | 前提                    |
+| --------------------------- | ----------------- | ----------------------- |
+| Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
+| Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
+
+- 「データを永続化したい」「テーブルを追加したい」なら、まず `add-d1-drizzle` が適用済みか確認する。
+  未適用なら手作りせず skill から適用する
+- 適用済みかどうかは `src/worker/db/` と `wrangler.json` の `d1_databases` の有無で判断できる
+
 ## テストの書き分け
 
 | 対象                                            | 書き方                    |
@@ -81,3 +95,5 @@ UI のために `render()` する専用テストファイルは作らず story �
 | Storybook テストの初回フレーキー                        | `docs/storybook-vitest-first-run-flake.md`                                  |
 | Cloudflare 全般                                         | `cloudflare`, `workers-best-practices`, `wrangler`, `durable-objects` skill |
 | react-app のレイヤー構成（Feature-Sliced Design）       | `fsd` skill                                                                 |
+| D1 + Drizzle ORM の追加                                 | `add-d1-drizzle` skill                                                      |
+| 認証（Better Auth / GitHub OAuth）の追加                | `add-better-auth` skill                                                     |

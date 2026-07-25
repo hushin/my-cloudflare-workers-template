@@ -1,5 +1,5 @@
 import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
-import { defineConfig } from 'vitest/config';
+import { defaultExclude, defineConfig } from 'vitest/config';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
@@ -27,6 +27,9 @@ export default defineConfig({
         extends: true,
         test: {
           globals: true,
+          // add-on skill の assets は「貼り付け用の実ファイル」であって
+          // このリポジトリでは解決できない import を含むため、テスト対象から外す
+          exclude: [...defaultExclude, '**/skills/*/assets/**'],
         },
       },
       {

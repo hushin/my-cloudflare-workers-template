@@ -22,34 +22,52 @@
 | パッケージ管理 | pnpm                                                                                          |
 | バージョン管理 | mise                                                                                          |
 
+## オプション構成（add-on）
+
+**データベースと認証は既定では含まれていない。** 要らないアプリがあるため main は最小構成に保ち、
+必要なアプリでだけ add-on として追加する。手順と貼り付け用の実ファイルは
+`.agents/skills/<name>/` にまとまっているので、Claude Code に skill を適用させる。
+
+| 追加したいもの              | skill             | 前提                    |
+| --------------------------- | ----------------- | ----------------------- |
+| Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
+| Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
+
+これらの手順が腐らないよう、両方を適用しきった状態を `example/d1-auth` ブランチで維持している
+（参照用。直接 merge して使うものではない）。
+
 ## ディレクトリ構造
 
 ```
 .
-├── .storybook/          # Storybook 設定（main.ts / preview.tsx）
+├── .storybook/            # Storybook 設定（main.ts / preview.tsx）
+├── .agents/skills/        # プロジェクト固有の skill（.claude/skills はここへの symlink）
 ├── src/
-│   ├── worker/          # Hono Worker（API routes）
-│   │   ├── index.ts
-│   │   ├── routes/      # Hono route（method chain）
-│   │   ├── schemas/     # zod スキーマ
-│   │   └── repositories/# データアクセス
-│   └── react-app/       # React フロントエンド
-│       ├── main.tsx
-│       ├── client.ts    # hc クライアント
-│       ├── routes/      # TanStack Router file-based routes
-│       ├── components/  # UI コンポーネント（shadcn/ui 含む）
-│       └── lib/         # クライアント向けユーティリティ（cn など）
-├── public/              # 静的アセット
-├── dist/                # ビルド出力
-├── docs/                # ドキュメント
-├── wrangler.json        # Wrangler 設定
+│   ├── worker/            # Hono Worker（API routes）
+│   │   ├── index.ts       # Workers entrypoint（wrangler.json の main）
+│   │   ├── routes/        # Hono route（method chain）
+│   │   └── repositories/  # データアクセス（add-d1-drizzle 適用後）
+│   ├── react-app/         # React SPA（Feature-Sliced Design）
+│   │   ├── main.tsx
+│   │   ├── app/           # provider / router 初期化、layouts
+│   │   ├── routes/        # TanStack Router file-based routes（薄い route 定義）
+│   │   ├── pages/         # 画面本体（URL セグメント単位のスライス）
+│   │   └── shared/        # ui（shadcn/ui）, lib（cn, msw-hono）, api（hc クライアント）
+│   └── shared/            # worker / react-app 共通コード
+│       └── schemas/       # zod スキーマ
+├── public/                # 静的アセット
+├── dist/                  # ビルド出力
+├── docs/                  # ドキュメント
+├── wrangler.json          # Wrangler 設定
 ├── vite.config.ts
-├── vitest.config.ts     # worker / storybook の 2 プロジェクト構成
+├── vitest.config.ts       # worker / storybook の 2 プロジェクト構成
+├── steiger.config.ts      # FSD の構造 lint
 ├── tsconfig.*.json
-└── mise.toml            # ツールバージョン管理
+└── mise.toml              # ツールバージョン管理
 ```
 
 story（`*.stories.tsx`）と MSW モック（`*.mock.ts`）は対象ファイルの隣に置く。
+`src/react-app/` のレイヤー構成の詳細は `.agents/skills/fsd/SKILL.md` を参照。
 
 ## よく使うコマンド
 
@@ -97,7 +115,7 @@ npx wrangler tail     # Workers のリアルタイムログ
 
 - **UI（コンポーネント・ページ）** — 専用のテストファイルを作らず、**story の `play` 関数がそのまま
   interaction test** になる（[Storybook: Interaction testing](https://storybook.js.org/docs/writing-tests/interaction-testing)）。
-  API は MSW でモックし、ハンドラは `src/react-app/lib/msw-hono.ts` の `createHandler` で
+  API は MSW でモックし、ハンドラは `src/react-app/shared/lib/msw-hono.ts` の `createHandler` で
   Hono の `AppType` から型付けして書く
 - **util 関数・複雑な計算ロジック** — 対象の隣に `*.test.ts` を置いて直接テストする。
   ただし react-app 配下でも worker プロジェクト（Workers runtime）で実行されるため、

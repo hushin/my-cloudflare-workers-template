@@ -106,6 +106,27 @@ describe('example-todo routes', () => {
 
 API 経由で DELETE をループしてクリアする方式は避ける（テストが API の正常動作に依存してしまう）。
 
+## D1 を使う route のテスト
+
+D1（`add-d1-drizzle` skill）を導入している場合、状態はモジュール変数ではなくデータベースに載る。
+リセット関数の代わりに、`beforeEach` でテーブルの行を消す。
+
+```ts
+import { env } from 'cloudflare:test';
+
+beforeEach(async () => {
+  await env.DB.exec('DELETE FROM example_todos');
+});
+```
+
+- マイグレーションの適用は各テストではなく `setupFiles`（`src/worker/test/apply-migrations.ts`）で
+  一度だけ行う。テスト本体に migration を書かない
+- `env.DB.exec()` は **単文のみ**。複数テーブルを消すなら `exec` を複数回呼ぶか `env.DB.batch()` を使う
+- テーブルを増やしたら `beforeEach` の削除対象にも追加する（消し忘れは他テストへの汚染になる）
+- 外部キー制約がある場合は子テーブルから先に消す
+
+setupFiles と `vitest.config.ts` 側の設定は `add-d1-drizzle` skill を参照。
+
 ## tsconfig
 
 `tsconfig.worker.json` の `types` に以下2つが追加済であること：
