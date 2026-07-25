@@ -1,4 +1,4 @@
-import { cloudflareTest } from '@cloudflare/vitest-plugin';
+import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-plugin';
 import { defaultExclude, defineConfig } from 'vitest/config';
 import path from 'node:path';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
@@ -9,6 +9,9 @@ const dirname = import.meta.dirname;
 // このリポジトリでは解決できない import を含むため、テスト対象から外す。
 // .wt は git worktree の置き場（別ブランチの作業ツリー）。
 const commonExclude = [...defaultExclude, '**/skills/*/assets/**', '**/.wt/**'];
+
+// Node 側で migration SQL を読む（drizzle-kit が drizzle/ に出力したもの）
+const migrations = await readD1Migrations('./drizzle');
 
 // テストは置き場所で project を振り分ける。
 //   unit      … Workers も D1 も使わない純ロジック（Node で流す。速い）
@@ -67,11 +70,17 @@ export default defineConfig({
             wrangler: {
               configPath: './wrangler.json',
             },
+            // 読んだ migration をテスト用 Worker のバインディングとして渡す
+            miniflare: {
+              bindings: { TEST_MIGRATIONS: migrations },
+            },
           }),
         ],
         test: {
           name: 'worker',
           globals: true,
+          // 各テストファイルの実行前に migration を適用する
+          setupFiles: ['./src/worker/test/apply-migrations.ts'],
           include: ['src/worker/**/*.test.ts'],
           // PURE_WORKER_TESTS は unit で流す（二重に走らせない）
           exclude: [...commonExclude, ...PURE_WORKER_TESTS],

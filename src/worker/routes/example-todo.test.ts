@@ -1,13 +1,26 @@
 import { z } from 'zod';
 import { env } from 'cloudflare:test';
-import app, { resetTodos } from './example-todo';
+import app from './example-todo';
 
 const todoSchema = z.object({ id: z.string(), title: z.string() });
 const todosSchema = z.array(todoSchema);
 
+const createTodo = (title: string) =>
+  app.request(
+    '/',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    },
+    env,
+  );
+
 describe('example-todo routes', () => {
-  beforeEach(() => {
-    resetTodos();
+  // D1 はテスト間で共有されるので、毎テスト前に行を消す。
+  // migration 自体は setupFiles（src/worker/test/apply-migrations.ts）で適用済み。
+  beforeEach(async () => {
+    await env.DB.exec('DELETE FROM example_todos');
   });
 
   it('GET / returns empty array initially', async () => {
@@ -17,30 +30,14 @@ describe('example-todo routes', () => {
   });
 
   it('POST / creates a todo and returns 201', async () => {
-    const res = await app.request(
-      '/',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Buy milk' }),
-      },
-      env,
-    );
+    const res = await createTodo('Buy milk');
     expect(res.status).toBe(201);
     const todo = todoSchema.parse(await res.json());
     expect(todo.title).toBe('Buy milk');
   });
 
   it('POST / with empty title returns 400', async () => {
-    const res = await app.request(
-      '/',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: '' }),
-      },
-      env,
-    );
+    const res = await createTodo('');
     expect(res.status).toBe(400);
   });
 
@@ -61,18 +58,8 @@ describe('example-todo routes', () => {
     let todoId: string;
 
     beforeEach(async () => {
-      resetTodos();
-      const res = await app.request(
-        '/',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: 'Original title' }),
-        },
-        env,
-      );
-      const todo = todoSchema.parse(await res.json());
-      todoId = todo.id;
+      const res = await createTodo('Original title');
+      todoId = todoSchema.parse(await res.json()).id;
     });
 
     it('GET / returns array with the todo', async () => {
@@ -150,15 +137,7 @@ describe('example-todo routes', () => {
 
     it('full CRUD flow', async () => {
       // Create → List → Update → List → Delete → List
-      const createRes = await app.request(
-        '/',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: 'CRUD test' }),
-        },
-        env,
-      );
+      const createRes = await createTodo('CRUD test');
       expect(createRes.status).toBe(201);
       const created = todoSchema.parse(await createRes.json());
 
