@@ -40,6 +40,11 @@ export default defineConfig({
         ],
         test: {
           name: 'storybook',
+          // story ファイルを並列に読み込むと、コールドキャッシュの初回実行で
+          // テスターページが落ちる／繋がらないことがある（vitest-dev/vitest#8471,
+          // #10791）。直列にすると数秒遅くなるが初回が安定する。
+          // 詳細は docs/storybook-vitest-first-run-flake.md
+          fileParallelism: false,
           browser: {
             enabled: true,
             headless: true,
