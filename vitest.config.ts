@@ -1,9 +1,12 @@
-import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
+import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
 import { defaultExclude, defineConfig } from 'vitest/config';
 import path from 'node:path';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
 const dirname = import.meta.dirname;
+
+// Node 側で migration SQL を読み、テスト用 Worker のバインディングとして渡す
+const migrations = await readD1Migrations('./drizzle');
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
@@ -11,6 +14,9 @@ export default defineConfig({
     cloudflareTest({
       wrangler: {
         configPath: './wrangler.json',
+      },
+      miniflare: {
+        bindings: { TEST_MIGRATIONS: migrations },
       },
     }),
   ],
@@ -25,6 +31,8 @@ export default defineConfig({
         extends: true,
         test: {
           globals: true,
+          // 各テストファイルの実行前に migration を適用する
+          setupFiles: ['./src/worker/test/apply-migrations.ts'],
           // add-on skill の assets は「貼り付け用の実ファイル」であって
           // このリポジトリでは解決できない import を含むため、テスト対象から外す。
           // .wt は git worktree の置き場（別ブランチの作業ツリー）。
