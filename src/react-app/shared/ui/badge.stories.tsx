@@ -4,7 +4,6 @@ import { Badge } from './badge';
 
 const meta = {
   component: Badge,
-  tags: ['ai-generated'],
   args: {
     children: 'Badge',
   },

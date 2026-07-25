@@ -4,7 +4,6 @@ import { Input } from './input';
 
 const meta = {
   component: Input,
-  tags: ['ai-generated'],
   args: {
     placeholder: 'New todo',
   },

@@ -5,7 +5,6 @@ import { exampleTodoHandlers, resetExampleTodos } from './ExampleTodoPage.mock';
 
 const meta = {
   component: ExampleTodoPage,
-  tags: ['ai-generated'],
   // story ごとにモックの状態を初期化して、実行順に依存しないようにする
   beforeEach: () => {
     resetExampleTodos();

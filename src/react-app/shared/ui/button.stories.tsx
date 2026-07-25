@@ -4,7 +4,6 @@ import { Button } from './button';
 
 const meta = {
   component: Button,
-  tags: ['ai-generated'],
   args: {
     children: 'Click me',
   },

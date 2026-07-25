@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './car
 
 const meta = {
   component: Card,
-  tags: ['ai-generated'],
 } satisfies Meta<typeof Card>;
 
 export default meta;

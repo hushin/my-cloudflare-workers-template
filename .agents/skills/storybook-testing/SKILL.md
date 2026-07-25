@@ -61,7 +61,6 @@ import { Button } from './button';
 
 const meta = {
   component: Button,
-  tags: ['ai-generated'],
   args: { children: 'Click me' },
 } satisfies Meta<typeof Button>;
 
@@ -82,7 +81,6 @@ export const Disabled: Story = {
 - テストユーティリティは **`storybook/test`** から import する（`@testing-library/*` を直接入れない）
 - `canvas` / `userEvent` / `args` / `step` は play の引数から受け取る。`within(canvasElement)` や
   `userEvent.setup()` を自前で呼ばない
-- AI が生成した story には `tags: ['ai-generated']` を付ける
 - play を書かなくても story は「レンダリングが落ちないこと」のスモークテストになる。
   バリアント違いだけの story に無理に play を足さない
 

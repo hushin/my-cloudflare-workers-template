@@ -4,7 +4,6 @@ import { Separator } from './separator';
 
 const meta = {
   component: Separator,
-  tags: ['ai-generated'],
 } satisfies Meta<typeof Separator>;
 
 export default meta;

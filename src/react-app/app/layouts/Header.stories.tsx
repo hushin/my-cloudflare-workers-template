@@ -4,7 +4,6 @@ import { Header } from './Header';
 
 const meta = {
   component: Header,
-  tags: ['ai-generated'],
 } satisfies Meta<typeof Header>;
 
 export default meta;
