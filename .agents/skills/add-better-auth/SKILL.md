@@ -29,15 +29,20 @@ pnpm add better-auth
 
 `assets/src/worker/auth/` を `src/worker/auth/` にコピーする。
 
-| ファイル        | 役割                                                         |
-| --------------- | ------------------------------------------------------------ |
-| `options.ts`    | DB / secret を除いた共通設定。plugin を足すならここ          |
-| `index.ts`      | `createAuth(env)` ファクトリと `AuthUser` / `AuthSession` 型 |
-| `cli.ts`        | スキーマ生成 CLI 専用のエントリ（実行時には使わない）        |
-| `middleware.ts` | `sessionMiddleware` / `requireAuth` と `AuthEnv` 型          |
+| ファイル             | 役割                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| `options.ts`         | DB / secret を除いた共通設定。plugin を足すならここ          |
+| `index.ts`           | `createAuth(env)` ファクトリと `AuthUser` / `AuthSession` 型 |
+| `cli.ts`             | スキーマ生成 CLI 専用のエントリ（実行時には使わない）        |
+| `middleware.ts`      | `sessionMiddleware` / `requireAuth` と `AuthEnv` 型          |
+| `middleware.test.ts` | 未ログイン時に 401 を返すことの worker テスト                |
 
 **`createAuth` をモジュールトップで呼ばない**。Workers の `env` はリクエストスコープなので、
 ハンドラの中で `createAuth(c.env)` として都度生成する。
+
+Better Auth 1.5 以降は `database: env.DB` で D1 を直接渡すこともできるが、ここでは
+**`drizzleAdapter` を使う**。auth のテーブルも drizzle-kit のマイグレーションに載せて、
+マイグレーション経路を drizzle 1 本に集約するため。
 
 ### 3. auth テーブルのスキーマを生成
 
@@ -89,6 +94,10 @@ const app = new Hono<AuthEnv>()
 - `Hono<{ Bindings: Env }>` を `Hono<AuthEnv>` に変える
 - `.use('*', sessionMiddleware)` は auth のマウントより **後** に置く。Hono の middleware は
   登録順に効くので、こうすると OAuth コールバックで無駄な `getSession` が走らない
+- この形だと `/api/*` の全リクエストでセッション確認の D1 読み取りが走る。D1 は読み取り行数で
+  課金されるので、頻度が問題になったら `options.ts` に `session.cookieCache`（既定オフ）を
+  入れるか、`.use('/protected/*', sessionMiddleware)` のようにスコープを絞る。
+  cookieCache はサーバ側でセッションを失効させても `maxAge` の間は効いてしまう点に注意
 
 ### 5. route を保護する（必要になったら / 必須手順ではない）
 
@@ -150,15 +159,20 @@ pnpm wrangler secret put GITHUB_CLIENT_ID
 pnpm wrangler secret put GITHUB_CLIENT_SECRET
 ```
 
-`BETTER_AUTH_URL` は秘密ではないので `wrangler.json` の `vars` に本番 URL を書く。**これは必須**。
-`wrangler types` は `.dev.vars` があればそこからも `Env` を組み立てるため、`.dev.vars` を持つ
-自分の手元でだけ型が通り、clone 直後や CI で `Env` の形が変わってしまう。
+`BETTER_AUTH_URL` は秘密ではないので `wrangler.json` の `vars` に本番 URL を書く（**必須**）。
 
 ```jsonc
 "vars": { "BETTER_AUTH_URL": "https://<your-worker-domain>" }
 ```
 
 最後に `pnpm cf-typegen` を実行して `Env` にこれらの変数を反映させる。
+
+**`cf-typegen` は必ず `.dev.vars` が揃った状態で実行する。** `wrangler types` は `wrangler.json` の
+`vars` だけでなく `.dev.vars` からも `Env` を組み立てる。つまりシークレット 3 本は `.dev.vars`
+経由でしか `Env` に載らないので、`.dev.vars` の無い環境（clone 直後・CI）で `cf-typegen` すると
+3 本が黙って `Env` から消え、コミット済みの `worker-configuration.d.ts` を壊す
+（`auth/index.ts` が型エラーになり `pnpm check` が落ちる）。`BETTER_AUTH_URL` を `vars` に置くのが
+必須なのも同じ理由（`vars` にあれば `.dev.vars` の有無に左右されない）。
 
 ### 8. 確認
 

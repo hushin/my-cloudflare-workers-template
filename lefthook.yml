@@ -2,7 +2,9 @@ pre-commit:
   parallel: true
   commands:
     lint-fix:
-      run: pnpm oxlint --fix {staged_files}
+      # glob には合うが ignorePatterns で全部除外される（skill の assets など）ケースで
+      # oxlint が「対象なし」でエラー終了しないようにする
+      run: pnpm oxlint --fix --no-error-on-unmatched-pattern {staged_files}
       glob: '*.{ts,tsx,js,jsx,mjs,cjs}'
       stage_fixed: true
     fmt:

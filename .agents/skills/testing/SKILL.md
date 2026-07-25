@@ -121,7 +121,8 @@ beforeEach(async () => {
 
 - マイグレーションの適用は各テストではなく `setupFiles`（`src/worker/test/apply-migrations.ts`）で
   一度だけ行う。テスト本体に migration を書かない
-- `env.DB.exec()` は **単文のみ**。複数テーブルを消すなら `exec` を複数回呼ぶか `env.DB.batch()` を使う
+- `env.DB.exec()` は複数文を `\n` 区切りで受け取れるが、prepared statement を使わないため
+  **maintenance / one-shot 用**（公式ドキュメント）。テストの後片付けはこの用途に当たるので `exec` で問題ない
 - テーブルを増やしたら `beforeEach` の削除対象にも追加する（消し忘れは他テストへの汚染になる）
 - 外部キー制約がある場合は子テーブルから先に消す
 

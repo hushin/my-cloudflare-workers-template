@@ -32,6 +32,8 @@ pnpm add -D drizzle-kit
 pnpm wrangler d1 create <database-name>
 ```
 
+これは **Cloudflare アカウントに実リソースを作る操作**なので、実行前にユーザーに確認する。
+
 出力された `database_id` を使って `wrangler.json` に追記する。
 
 ```jsonc
@@ -106,11 +108,8 @@ pnpm db:migrate:local   # ローカル（.wrangler 配下の SQLite）に適用
 本番へは `pnpm db:migrate` で適用する。
 
 `drizzle/meta/*.json` は drizzle-kit のフォーマットで出力されるため、そのままだと `fmt:check` が
-落ちる。`routeTree.gen.ts` と同じ扱いで `.oxfmtrc.json` の `ignorePatterns` に追加する。
-
-```jsonc
-"ignorePatterns": ["src/react-app/routeTree.gen.ts", "drizzle/meta/*.json"]
-```
+落ちる。`.oxfmtrc.json` の `ignorePatterns` に `"drizzle/meta/*.json"` を **既存の配列へ追加**する
+（配列ごと置き換えないこと。`worker-configuration.d.ts` などの既存の除外が消える）。
 
 ### 7. vitest を D1 対応にする
 
@@ -168,11 +167,35 @@ pnpm check && pnpm test
 
 ## 新しいテーブルを足すとき
 
-1. `src/worker/db/schema.ts` にテーブルを追加
-2. `src/worker/repositories/<name>.ts` にデータアクセスを書く（`Db` を第1引数で受ける形に揃える）
+1. `src/worker/db/schema.ts` にテーブルを追加。**`WHERE` / `ORDER BY` に使う列には `index()` を張る**
+   （インデックスの無い全表走査は D1 の読み取り行数課金に直結する）。時刻は
+   `integer(..., { mode: 'timestamp_ms' })` で持つ（`text` + `current_timestamp` は秒精度で
+   同一秒内の並び順が定まらない）
+2. `src/worker/repositories/<name>.ts` にデータアクセスを書く（`Db` を第1引数で受ける形に揃える）。
+   **一覧系には必ず `.limit()` を掛ける**
 3. `src/worker/routes/<name>.ts` を作り `src/worker/index.ts` に `.route()` でマウント
 4. `pnpm db:generate && pnpm db:migrate:local`
 5. テストの `beforeEach` に新テーブルの `DELETE FROM` を足す
+6. `unique()` を張った列があるなら、制約違反を捕まえて 409 を返す（下記）
+
+## UNIQUE 制約違反を 409 にする
+
+制約違反はアプリコードから到達しうるので、そのままだと 500 になる。route 側で捕まえる。
+
+```ts
+.post('/', zValidator('json', createSchema), async (c) => {
+  try {
+    return c.json(await someRepository.create(createDb(c.env), c.req.valid('json')), 201);
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('UNIQUE constraint failed')) {
+      return c.json({ error: 'Conflict' }, 409);
+    }
+    throw e;
+  }
+})
+```
+
+`add-better-auth` を適用すると `user.email` に UNIQUE が張られる点に注意。
 
 ## ハマりどころ
 
@@ -180,5 +203,9 @@ pnpm check && pnpm test
   言うときはまずここを疑う
 - **リモートとローカルは別物** — `--local` で作ったテーブルは本番には無い。デプロイ前に
   `pnpm db:migrate` を忘れない
-- **`D1Database.exec()` は単文のみ** — 複数文をまとめて流したいときは `db.batch()` を使う
+- **`D1Database.exec()` はアプリのクエリに使わない** — prepared statement を使わないため遅く、
+  安全性も低い。公式ドキュメントも "Only use this method for maintenance and one-shot tasks
+  (for example, migration jobs)" としている（複数文を `\n` 区切りで渡すことは可能）。
+  アプリのクエリは drizzle 経由（= prepared statement）で書き、**複数の書き込みをアトミックに
+  したいときは `db.batch()`**（batch は SQL transaction として実行され、失敗すると全体が rollback される）
 - **`.returning()` を使わないと作成/更新後の行が取れない** — D1（SQLite）は `RETURNING` に対応済み
