@@ -24,7 +24,11 @@
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "drizzle"
     }
-  ]
+  ],
+  // 秘密ではないので vars に置く。実際のデプロイ先のドメインに書き換える
+  "vars": {
+    "BETTER_AUTH_URL": "https://my-cloudflare-workers-template.workers.dev"
+  }
   /**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

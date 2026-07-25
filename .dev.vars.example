@@ -1,0 +1,11 @@
+# better-auth のセッション署名鍵。`openssl rand -base64 32` などで生成する
+BETTER_AUTH_SECRET=""
+
+# アプリのベース URL。ローカルは Vite dev server の URL
+BETTER_AUTH_URL="http://localhost:5173"
+
+# GitHub OAuth App の資格情報
+# https://github.com/settings/developers で作成し、Authorization callback URL に
+# http://localhost:5173/api/auth/callback/github を登録する（本番 URL は別途追加）
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET=""
