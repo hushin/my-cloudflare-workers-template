@@ -17,7 +17,7 @@ src/
 └── react-app/           # React SPA
     ├── main.tsx          # RouterProvider / QueryClientProvider の起点
     ├── client.ts          # hc<AppType> クライアント
-    ├── routes/            # TanStack Router file-based routes（__root.tsx 含む）
+    ├── routes/            # TanStack Router file-based routes（__root.tsx / *.stories.tsx / *.mock.ts を colocation）
     ├── components/        # UI コンポーネント（shadcn/ui 含む）
     └── lib/               # クライアント向けユーティリティ（cn など）
 ```
@@ -26,6 +26,8 @@ src/
 - Static assets（build output）: `./dist/client`（SPA mode）
 - 新規 API route は `src/worker/routes/` にファイルを追加し、`src/worker/index.ts` の Hono インスタンスに `.route()` でマウントする（method chain を維持すること。詳細は `docs/hono-rpc-types.md`）
 - 新規ページは `src/react-app/routes/` にファイルを追加する（TanStack Router の file-based routing、`routeTree.gen.ts` は自動生成されるためコミット対象）
+- story と MSW モックは対象ファイルの隣に `*.stories.tsx` / `*.mock.ts` として置く（vite.config.ts の `routeFileIgnorePattern` でルート生成から除外済み）
+- MSW ハンドラは `createHandler`（`src/react-app/lib/msw-hono.ts`）で定義する。パス・メソッド・input・status・output が Hono の `AppType` から型付けされる（例: `src/react-app/routes/example-todo.mock.ts`）
 
 ### テックスタック
 

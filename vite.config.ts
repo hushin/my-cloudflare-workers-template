@@ -22,6 +22,8 @@ export default defineConfig({
       target: 'react',
       autoCodeSplitting: true,
       routesDirectory: './src/react-app/routes',
+      // route と colocation した *.stories.tsx / *.mock.ts をルート扱いしない
+      routeFileIgnorePattern: '\\.(stories|mock)\\.',
       generatedRouteTree: './src/react-app/routeTree.gen.ts',
     }),
     react(),

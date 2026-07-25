@@ -25,6 +25,9 @@ const config: StorybookConfig = {
       ...(viteConfig.optimizeDeps.include ?? []),
       'react/jsx-dev-runtime',
       'react/jsx-runtime',
+      '@tanstack/react-form',
+      'hono/client',
+      'zod',
     ];
     return viteConfig;
   },

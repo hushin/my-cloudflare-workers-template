@@ -37,7 +37,7 @@ const exampleTodoQueryKey = ['example-todo'];
 
 type ExampleTodo = InferResponseType<(typeof client.api)['example-todo']['$get'], 200>[number];
 
-function ExampleTodoPage() {
+export function ExampleTodoPage() {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
 
