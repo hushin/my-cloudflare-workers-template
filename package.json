@@ -36,6 +36,7 @@
     "better-auth": "^1.6.25",
     "drizzle-orm": "^0.45.2",
     "hono": "4.12.31",
+    "neverthrow": "^8.2.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "shadcn": "^4.13.1",

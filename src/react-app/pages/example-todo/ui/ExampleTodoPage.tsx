@@ -54,6 +54,18 @@ export function ExampleTodoPage() {
     },
   });
 
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: 'active' | 'completed' }) => {
+      await client.api['example-todo'][':id'].status.$patch({
+        param: { id },
+        json: { status },
+      });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: exampleTodoQueryKey });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       await client.api['example-todo'][':id'].$delete({ param: { id } });
@@ -143,8 +155,31 @@ export function ExampleTodoPage() {
             <EditTodoCard key={todo.id} todo={todo} onDone={() => setEditingId(null)} />
           ) : (
             <Card key={todo.id} className="flex justify-between p-4">
-              <span className="font-medium">{todo.title}</span>
               <div className="flex items-center gap-2">
+                <span
+                  className={
+                    todo.status === 'completed'
+                      ? 'font-medium text-muted-foreground line-through'
+                      : 'font-medium'
+                  }
+                >
+                  {todo.title}
+                </span>
+                {todo.status === 'completed' && <Badge variant="secondary">Completed</Badge>}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    statusMutation.mutate({
+                      id: todo.id,
+                      status: todo.status === 'completed' ? 'active' : 'completed',
+                    })
+                  }
+                >
+                  {todo.status === 'completed' ? 'Reopen' : 'Complete'}
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => setEditingId(todo.id)}>
                   Edit
                 </Button>
