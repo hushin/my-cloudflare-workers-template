@@ -60,6 +60,57 @@ export default {
       from: { path: '^src/worker/repositories' },
       to: { path: '^src/worker/routes' },
     },
+
+    // --- ここから DMMF 構成（add-dmmf skill）のルール ---
+    // domain と workflows が純粋であることは、レビューではなくここで守る。
+
+    {
+      name: 'domain-must-stay-pure',
+      comment:
+        'domain は IO を知らない層。drizzle / hono / Workers のランタイムに依存した時点で、' +
+        'ドメインのテストに DB や env が必要になり「純粋な層」が消える。',
+      severity: 'error',
+      from: { path: '^src/worker/domain' },
+      to: {
+        dependencyTypes: ['npm', 'npm-dev'],
+        // pnpm の解決パスは node_modules/.pnpm/neverthrow@x.y.z/... になるので名前で照合する
+        pathNot: 'neverthrow',
+      },
+    },
+    {
+      name: 'domain-is-not-allowed-to-depend-on-outer-layers',
+      comment:
+        'domain は自分より外（workflows / repositories / db / routes / context）を知らない。' +
+        '依存の向きは常に外→内。',
+      severity: 'error',
+      from: { path: '^src/worker/domain' },
+      to: {
+        path: '^src/worker/(workflows|repositories|db|routes|auth)|^src/worker/context\\.ts$',
+      },
+    },
+    {
+      name: 'workflows-may-only-depend-on-domain-and-lib',
+      comment:
+        'workflow が repository や db を直接 import すると、IO を高階関数で受け取る形が崩れ、' +
+        'テストに D1 が必要になる。IO 依存は引数（DI）で受け取る。' +
+        'テストは除く（「依存側のエラーがそのまま通り抜ける」ことを確かめるために ' +
+        'D1Error のようなインフラのエラー型を組み立てる必要がある）。',
+      severity: 'error',
+      from: { path: '^src/worker/workflows', pathNot: '\\.test\\.ts$' },
+      to: {
+        path: '^src/worker/',
+        pathNot: '^src/worker/(domain|lib|workflows)/',
+      },
+    },
+    {
+      name: 'domain-and-workflows-are-not-allowed-to-depend-on-shared-schemas',
+      comment:
+        'zod スキーマ（DTO）はドメインの型ではない。DTO → ドメイン型の変換は ' +
+        'workflows/*/steps.ts の validate ステップが担い、そこでも DTO の型には依存しない。',
+      severity: 'error',
+      from: { path: '^src/worker/(domain|workflows)' },
+      to: { path: '^src/shared' },
+    },
   ],
   options: {
     // 依存の解決に path alias（@/*）が必要。paths を持つのはルートの tsconfig
