@@ -1,0 +1,76 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Tokyo'
+    open-pull-requests-limit: 10
+    # リリース直後の不安定なバージョンを掴まないよう、公開から一定期間寝かせる
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    groups:
+      # major も含めてまとめる（バラバラに上げると噛み合わないエコシステム）
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+          - '@vitejs/plugin-react'
+      storybook:
+        patterns:
+          - 'storybook'
+          - '@storybook/*'
+          - '@chromatic-com/storybook'
+          - 'msw-storybook-addon'
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+      tanstack:
+        patterns:
+          - '@tanstack/*'
+      cloudflare:
+        patterns:
+          - 'wrangler'
+          - '@cloudflare/*'
+      tailwind:
+        patterns:
+          - 'tailwindcss'
+          - '@tailwindcss/*'
+          - 'tailwindcss-animate'
+          - 'tw-animate-css'
+          - 'tailwind-merge'
+      oxc:
+        patterns:
+          - 'oxlint'
+          - 'oxlint-tsgolint'
+          - 'oxfmt'
+      # 上記以外の minor / patch はまとめて 1 PR に（major は個別 PR のまま）
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Tokyo'
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
