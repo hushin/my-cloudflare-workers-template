@@ -22,7 +22,7 @@ src/worker/
 ├── index.ts              # app の合成と .route() のマウントのみ
 ├── context.ts            # ApplicationContext（env → drizzle client）と middleware
 ├── domain/               # 純粋。IO ゼロ。集約ごとにファイル
-│   ├── errors.ts         #   ValidationError / EntityNotFound
+│   ├── errors.ts         #   ValidationError / EntityNotFound / 業務エラー
 │   └── <aggregate>.ts    #   型 + その型に適用する関数（同じファイルに置く）
 ├── workflows/            # ユースケース 1つ = 1ディレクトリ
 │   └── <use-case>/
@@ -35,6 +35,13 @@ src/worker/
 │   └── error.ts          #   エラー型 → HTTP ステータスの一元マッピング
 └── lib/result.ts         # neverthrow の再 export + 共通ヘルパ
 ```
+
+assets には題材が 2 つ入っている。**まず example-todo を読み、次に example-order を読む**。
+
+| 題材            | 実演していること                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------- |
+| `example-todo`  | 値オブジェクト、判別可能ユニオンでの状態遷移、1 テーブル 1 書き込みの最小形                  |
+| `example-order` | 複数ステップの合流（ROP）、集約をまたぐ更新の `db.batch()`、業務エラーの型分け、親子テーブル |
 
 ## 設計原則
 
@@ -82,18 +89,23 @@ tsconfig.app のプログラムにも入る**。worker 側（`tsconfig.node.json
 `routes/example-todo.ts` `routes/example-todo.test.ts` `shared/schemas/example-todo.ts` と
 react-app の 3 ファイルは既存を上書き）。
 
-| ファイル                                  | 役割                                                           |
-| ----------------------------------------- | -------------------------------------------------------------- |
-| `src/worker/lib/result.ts`                | neverthrow の再 export + `okOr`                                |
-| `src/worker/domain/errors.ts`             | `ValidationError` / `EntityNotFound`（`type` タグ付き）        |
-| `src/worker/domain/example-todo.ts`       | 値オブジェクト・判別可能ユニオン・状態遷移の実例               |
-| `src/worker/workflows/*/`                 | create / rename / change-status の 3 ユースケース              |
-| `src/worker/repositories/example-todo.ts` | `(ctx) => (args) => ResultAsync` の形。行 ↔ ドメイン変換もここ |
-| `src/worker/db/errors.ts`                 | `D1Error`                                                      |
-| `src/worker/context.ts`                   | `ApplicationContext`（`{ db, now }`）と `contextMiddleware`    |
-| `src/worker/routes/error.ts`              | エラー型 → HTTP の一元マッピング                               |
-| `src/shared/schemas/example-todo.ts`      | `status` の DTO スキーマを追加（**brand は付けない**）         |
-| `src/react-app/pages/example-todo/ui/*`   | 追加した `status` への追従と完了トグル                         |
+| ファイル                                     | 役割                                                                      |
+| -------------------------------------------- | ------------------------------------------------------------------------- |
+| `src/worker/lib/result.ts`                   | neverthrow の再 export + `okOr`                                           |
+| `src/worker/domain/errors.ts`                | `ValidationError` / `EntityNotFound` + 業務エラー 3 種（`type` タグ付き） |
+| `src/worker/domain/example-todo.ts`          | 値オブジェクト・判別可能ユニオン・状態遷移の実例                          |
+| `src/worker/domain/example-order.ts`         | 集約単位の不変条件、値付け、Draft → Placed → Cancelled の遷移             |
+| `src/worker/workflows/*-example-todo/`       | create / rename / change-status の 3 ユースケース                         |
+| `src/worker/workflows/place-example-order/`  | 4 ステップの合流（validate → resolve(IO) → 在庫 → 値付け）                |
+| `src/worker/workflows/cancel-example-order/` | 読み込み → 取消可能判定 → 遷移。出力はドメインイベント列                  |
+| `src/worker/repositories/example-todo.ts`    | `(ctx) => (args) => ResultAsync` の形。行 ↔ ドメイン変換もここ            |
+| `src/worker/repositories/example-order.ts`   | イベント列 → 1 回の `db.batch()`。親子テーブルと在庫の同時更新            |
+| `src/worker/db/errors.ts`                    | `D1Error`                                                                 |
+| `src/worker/context.ts`                      | `ApplicationContext`（`{ db, now, newId }`）と `contextMiddleware`        |
+| `src/worker/routes/error.ts`                 | エラー型 → HTTP の一元マッピング                                          |
+| `src/shared/schemas/example-todo.ts`         | `status` の DTO スキーマを追加（**brand は付けない**）                    |
+| `src/shared/schemas/example-order.ts`        | 注文の DTO スキーマ（集約単位のルールは書かない）                         |
+| `src/react-app/pages/example-todo/ui/*`      | 追加した `status` への追従と完了トグル                                    |
 
 ### 4. index.ts に middleware を足す
 
@@ -108,7 +120,8 @@ const app = new Hono<AppEnv>()
   // リクエストごとに ApplicationContext を組み立てて c.var.context に載せる
   .use('*', contextMiddleware)
   .get('/health', (c) => c.json({ status: 'ok' }))
-  .route('/example-todo', exampleTodoRoute);
+  .route('/example-todo', exampleTodoRoute)
+  .route('/example-order', exampleOrderRoute);
 ```
 
 `add-better-auth` 適用済みなら Variables を合成し、`sessionMiddleware` → `contextMiddleware`
@@ -132,6 +145,21 @@ type RootEnv = { Bindings: Env; Variables: AuthEnv['Variables'] & ContextVariabl
 **DB はドメインの制約をすべては表現できない**（「completed なら completed_at が非 NULL」は
 `CHECK` で書けても、ユニオンの網羅性までは守れない）。だから行 → ドメインの変換
 （repository の `toExampleTodo`）が `Result` を返し、そこで検証して弾く。
+
+example-order の 3 テーブルも足す（`schema.ts` は auth の有無で末尾が変わるので assets に
+含めていない。列の定義は `example/dmmf-d1-auth` の `src/worker/db/schema.ts` が正）。
+
+- `example_products` … `code`(PK) / `name` / `unit_price` / `stock`
+- `example_orders` … `id`(PK) / `status`(`placed` \| `cancelled`) / `total_amount` / `placed_at` / `cancelled_at`
+- `example_order_lines` … `id`(PK) / `order_id`(FK, cascade) / `product_code` / `quantity` / `unit_price` / `line_amount`
+
+**`stock` には `CHECK (stock >= 0)` を張る。** 在庫はワークフローでも検査するが、
+検査と更新の間に別リクエストが在庫を減らした場合はこれしか検出手段がない
+（`batch` 内なので注文ごと巻き戻る）。
+
+```ts
+  (table) => [check('example_products_stock_non_negative', sql`${table.stock} >= 0`)],
+```
 
 ```bash
 pnpm db:generate && pnpm db:migrate:local
@@ -255,10 +283,80 @@ export const findExampleTodoById =
 失敗すると全体が rollback される。そのため「複数の集約をまたぐ更新」は次の形にする。
 
 1. ワークフローは**ドメインイベント（または遷移後の状態）の配列**を返す。永続化はしない
-2. route がそれを drizzle のステートメントに変換し、**1 回の `db.batch()`** に流す
+2. route がそれを repository に渡し、repository が drizzle のステートメントに変換して
+   **1 回の `db.batch()`** に流す
 
 repository 関数が個別に `await` してしまうと、途中で失敗したときに部分適用の状態が残る。
 example-todo は 1 テーブル 1 書き込みなので `batch` は使っていない。
+example-order の `saveOrderPlacement` が実例で、注文 1 件 + 明細 N 件 + 在庫 N 件を 1 回で書く。
+
+```ts
+const insertOrder = db.insert(exampleOrders).values({ ... });
+const insertLines = order.lines.map((line) => db.insert(exampleOrderLines).values({ ... }));
+const reserveStock = events
+  .filter((event) => event.kind === 'StockReserved')
+  .map((event) =>
+    db
+      .update(exampleProducts)
+      .set({ stock: sql`${exampleProducts.stock} - ${event.quantity}` })
+      .where(eq(exampleProducts.code, event.productCode)),
+  );
+
+return ResultAsync.fromPromise(
+  db.batch([insertOrder, ...insertLines, ...reserveStock]),
+  toStockAwareError,
+).map(() => order);
+```
+
+- **親子を 1 回の batch で insert するには、insert 前に親の id が確定している必要がある。**
+  DB の `$defaultFn` に任せられないので、`ctx.newId()` を `ApplicationContext` に置いて
+  route が採番する（`crypto.randomUUID()` を domain / workflows に持ち込まない境界でもある）
+- **アプリ側のチェックだけでは守れない不変条件は DB の制約に落とし、違反をドメインのエラーに
+  読み替える**（`toStockAwareError`: `CHECK` 違反 → `InsufficientStock`）。
+  batch は 1 トランザクションなので、違反した時点で注文ごと巻き戻る
+
+## 業務エラーを型で分ける
+
+`ValidationError` に何でも詰めない。**呼び出し側の対処が違うものは別の型にする。**
+判断は「HTTP でどう返すか」ではなく「ドメインとして別の失敗か」で行い、
+HTTP へのマッピングは `routes/error.ts` の 1 箇所に集約する。
+
+| エラー型             | 意味                                     | HTTP |
+| -------------------- | ---------------------------------------- | ---- |
+| `ValidationError`    | 値オブジェクトや形式の制約違反           | 400  |
+| `EntityNotFound`     | URL で参照した集約が無い                 | 404  |
+| `ProductNotFound`    | ボディ内の商品コードがマスタに無い       | 400  |
+| `OrderLimitExceeded` | 集約単位の上限違反（1 注文の合計数量）   | 400  |
+| `InsufficientStock`  | 入力は正しいがサーバの状態と衝突している | 409  |
+
+- **値オブジェクトのエラーは `ValidationError` で揃える。** 「数量は 1〜99」は `Quantity` の
+  コンストラクタの責務なので専用の型にしない。一方「1 注文の合計数量は 100 まで」は
+  値オブジェクト単体では表現できない集約の不変条件なので `OrderLimitExceeded` として独立させる
+- ワークフローのエラー型はステップの和で書く（`ValidationError | OrderLimitExceeded |
+ProductNotFound | InsufficientStock | E`）。`E` は依存側のエラーの受け流し
+- `routes/error.ts` には `assertNever` があるので、**型を足してマッピングを忘れると型エラーになる**
+
+## ステップの分け方（Railway Oriented Programming）
+
+`place-example-order` が実例。**IO を挟むステップの前後で分け、分岐が起きる箇所に中間状態の型を置く。**
+
+```ts
+ok(command)
+  .andThen(validateCommand) // 生の DTO → branded 型 + 集約の不変条件
+  .asyncAndThen(resolveProducts(findProducts)) // ここだけ IO（高階関数で DI）
+  .andThen(checkStock) // 純粋
+  .andThen(priceOrder) // 純粋
+  .map(toEvents); // 出力はドメインイベント列
+```
+
+- **どのステップで落ちても後続は実行されない。** 「不正な入力なら IO を呼ばずに落ちる」は
+  テストで確かめる（スタブの呼び出し回数を数える）
+- **IO は 1 か所にまとめる。** 明細ごとに商品を引くと N+1 になるので、
+  依存の型は `(codes: readonly ProductCode[]) => ResultAsync<readonly Product[], E>` にして
+  まとめて渡す
+- **「引けなかったコードがある＝エラー」の判断はワークフロー側**。repository は
+  見つかった行だけを返す（何がエラーかはドメインの問題）
+- 複数の値を検証して 1 つにまとめるときは `Result.combine` を使う
 
 ## 新しい集約を足すとき
 
@@ -282,6 +380,11 @@ example-todo は 1 テーブル 1 書き込みなので `batch` は使ってい�
   `isErr()` だけだと意図と違う理由で失敗しても通ってしまう
 - **`.returning()` を忘れると作成 / 更新後の行が取れない** — `UPDATE` は対象が無くてもエラーに
   ならないので、`saveXxx` は `.returning()` の結果が空なら `EntityNotFound` を返す
-- **`UNIQUE` 制約違反は `D1Error` になって 500 に落ちる** — 409 にしたいなら repository で
-  `e.message.includes('UNIQUE constraint failed')` を見て専用のエラー型に写し、
-  `routes/error.ts` にマッピングを足す（`assertNever` があるので漏れは型エラーになる）
+- **`UNIQUE` / `CHECK` 制約違反は `D1Error` になって 500 に落ちる** — 409 にしたいなら
+  repository でメッセージを見て専用のエラー型に写し、`routes/error.ts` にマッピングを足す
+  （`assertNever` があるので漏れは型エラーになる）。実例は `toStockAwareError`
+- **`Result.combine` に渡す配列に `as const` を付けるとタプルとして解決されず `never` になる** —
+  `Result.combine([A(x), B(y)])` のように付けずに書けば、分解代入まで型が付く
+- **永続化しない状態を集約のユニオンに入れたら、repository の戻り値は狭い型にする** —
+  `PersistedExampleOrder`（= `PlacedOrder | CancelledOrder`）のように別名を切ると、
+  「読み出したら Draft だった」というありえない分岐を route に書かなくて済む
