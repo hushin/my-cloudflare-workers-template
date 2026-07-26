@@ -4,7 +4,7 @@
  *
  * `.agents/skills/<skill>/assets/<path>` は、適用後に `<path>` へ置かれる実ファイル。
  * 参照実装ブランチ（既定 `example/d1-auth`）はその適用済みの姿なので、両者がズレていたら
- * 手順書が腐りかけているサイン。
+ * 手順書が実態から乖離しはじめているサイン。
  *
  *   node scripts/check-skill-assets.mjs [ref]
  *

@@ -33,7 +33,7 @@
 | Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
 | Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
 
-これらの手順が腐らないよう、両方を適用しきった状態を `example/d1-auth` ブランチで維持している
+これらの手順が実態とズレないよう、両方を適用しきった状態を `example/d1-auth` ブランチで維持している
 （参照用。直接 merge して使うものではない）。main を更新したらこのブランチを rebase して
 `pnpm check && pnpm test` を通し、`pnpm skills:check` で `assets/` とのズレが無いことを確認する。
 
