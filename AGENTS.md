@@ -23,7 +23,9 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 pnpm dev              # Vite dev server（localhost:5173）
 pnpm check            # lint（型チェック込み）+ fmt:check + vite build + deploy --dry-run
 pnpm test             # vitest run（worker + storybook）
-pnpm lint             # oxlint（.oxlintrc.json の typeCheck で型エラーも出る）+ steiger（FSD の構造 lint）
+pnpm lint             # oxlint（型エラーも出る）+ steiger（FSD の構造）+ depcruise（依存の向き）
+pnpm lint:deps        # dependency-cruiser 単体（レイヤーをまたぐ import の向きだけを検査）
+pnpm deps:graph       # 依存グラフを dot 形式で出力（Graphviz に流して図にする）
 pnpm build            # tsc -b + vite build
 pnpm storybook        # Storybook UI（localhost:6006）
 pnpm build && pnpm deploy   # デプロイ
@@ -53,6 +55,21 @@ src/
 - story / MSW モックは画面本体ファイルの隣（`pages/<slice>/ui/`）に `*.stories.tsx` / `*.mock.ts`
 - UI キット・共通ユーティリティ・API クライアントは `src/react-app/shared/` に置き、`index.ts`（public API）経由で import する
 - サーバ・クライアント共通のロジック（zod スキーマ、型、定数など）は `src/shared/` に置く（react-app の FSD shared レイヤーとは別物）
+
+### レイヤー規約（`.dependency-cruiser.mjs` で機械的に検査）
+
+| 禁止する向き                         | 理由                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `src/shared` → `src/worker`          | shared は両方から読まれる土台。DTO と定数だけに保つ                                               |
+| `src/shared` → `src/react-app`       | shared は UI を知らない                                                                           |
+| `src/worker` → `src/react-app`       | Workers のバンドルに React が入る                                                                 |
+| `src/react-app` → `src/worker`       | **`import type` だけ許可**（Hono RPC の型）。値を import すると worker の実装がクライアントに入る |
+| `src/worker/repositories` → `routes` | データアクセスが HTTP 層を知ってはいけない                                                        |
+| 循環依存                             | 共通部分を切り出して一方向にする                                                                  |
+
+- 3 つの lint は役割が違う。**oxlint** = 1 ファイル内の書き方、**steiger** = `src/react-app` の
+  FSD 構造、**dependency-cruiser** = `worker` / `shared` / `react-app` をまたぐ依存の向き
+- ルールを足すときは `comment` に「なぜその向きが禁止か」を書く（理由の分からないルールは回避される）
 
 ## オプション構成（add-on）
 

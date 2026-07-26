@@ -15,7 +15,7 @@
 | バックエンド   | Hono 4（Workers 上で動作）, zod, @hono/zod-validator                                          |
 | ビルドツール   | Vite 7, @cloudflare/vite-plugin, @tanstack/router-plugin                                      |
 | デプロイ       | Wrangler 4, Cloudflare Workers                                                                |
-| Lint / Format  | oxlint, oxfmt                                                                                 |
+| Lint / Format  | oxlint, oxfmt, steiger（FSD 構造）, dependency-cruiser（依存の向き）                          |
 | UI カタログ    | Storybook 10（@storybook/tanstack-react）, MSW                                                |
 | テスト         | Vitest, @cloudflare/vitest-pool-workers, @storybook/addon-vitest（browser mode / Playwright） |
 | Git hooks      | lefthook                                                                                      |
@@ -63,12 +63,17 @@
 ├── vite.config.ts
 ├── vitest.config.ts       # worker / storybook の 2 プロジェクト構成
 ├── steiger.config.ts      # FSD の構造 lint
+├── .dependency-cruiser.mjs # レイヤー間の import 方向の lint
 ├── tsconfig.*.json
 └── mise.toml              # ツールバージョン管理
 ```
 
 story（`*.stories.tsx`）と MSW モック（`*.mock.ts`）は対象ファイルの隣に置く。
 `src/react-app/` のレイヤー構成の詳細は `.agents/skills/fsd/SKILL.md` を参照。
+
+レイヤーをまたぐ import の向き（`shared` → `worker` 禁止、`react-app` → `worker` は
+`import type` のみ、など）は `.dependency-cruiser.mjs` に規約として書かれており、
+`pnpm lint` で検査される。一覧は `AGENTS.md` の「レイヤー規約」を参照。
 
 ## よく使うコマンド
 
@@ -87,8 +92,10 @@ pnpm deploy           # Cloudflare Workers にデプロイ
 pnpm check            # 型チェック + ビルド + dry-run
 
 # Lint / Format
-pnpm lint             # lint チェック
+pnpm lint             # lint チェック（oxlint + steiger + dependency-cruiser）
 pnpm lint:fix         # lint 自動修正
+pnpm lint:deps        # レイヤーをまたぐ import の向きだけを検査
+pnpm deps:graph       # 依存グラフを dot 形式で出力
 pnpm fmt              # フォーマット
 pnpm fmt:check        # フォーマットチェック
 

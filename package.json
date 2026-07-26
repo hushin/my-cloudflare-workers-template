@@ -9,7 +9,7 @@
     "check": "pnpm lint && pnpm fmt:check && vite build && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
     "dev": "vite",
-    "lint": "oxlint && steiger ./src/react-app",
+    "lint": "oxlint && steiger ./src/react-app && depcruise src",
     "lint:fix": "oxlint --fix && steiger ./src/react-app --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
@@ -18,7 +18,9 @@
     "test:watch": "vitest",
     "preview": "pnpm run build && vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "lint:deps": "depcruise src",
+    "deps:graph": "depcruise src --output-type dot"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -54,6 +56,7 @@
     "@vitest/coverage-v8": "4.1.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dependency-cruiser": "^18.1.0",
     "lucide-react": "^1.25.0",
     "mockdate": "^3.0.5",
     "msw": "^2.15.0",
