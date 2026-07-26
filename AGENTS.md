@@ -28,6 +28,7 @@ pnpm build            # tsc -b + vite build
 pnpm storybook        # Storybook UI（localhost:6006）
 pnpm build && pnpm deploy   # デプロイ
 pnpm cf-typegen       # worker-configuration.d.ts 再生成
+pnpm skills:check     # add-on skill の assets と参照実装ブランチのズレを検出
 ```
 
 ## 構造
@@ -66,6 +67,9 @@ src/
 - 「データを永続化したい」「テーブルを追加したい」なら、まず `add-d1-drizzle` が適用済みか確認する。
   未適用なら手作りせず skill から適用する
 - 適用済みかどうかは `src/worker/db/` と `wrangler.json` の `d1_databases` の有無で判断できる
+- skill の手順が腐っていないことは、両方を適用しきった **参照実装ブランチ `example/d1-auth`** で担保する。
+  main を更新したらこのブランチを rebase して `pnpm check && pnpm test` を通す
+- `pnpm skills:check` で `assets/` と参照実装ブランチのズレを検出できる（skill を編集したら実行する）
 
 ## テストの書き分け
 
