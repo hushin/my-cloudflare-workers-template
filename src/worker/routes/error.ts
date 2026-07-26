@@ -10,7 +10,7 @@ export type AppError = DomainError | D1Error;
 
 export type ErrorResponse = {
   readonly body: { error: string };
-  readonly status: 400 | 404 | 500;
+  readonly status: 400 | 404 | 409 | 500;
 };
 
 /**
@@ -34,6 +34,15 @@ export const toErrorResponse = (error: AppError): ErrorResponse => {
       return { body: { error: 'Not Found' }, status: 404 };
     case 'ValidationError':
       return { body: { error: error.message }, status: 400 };
+    // リクエストボディに含まれた商品コードが無い。URL のリソース不在（404）とは区別する
+    case 'ProductNotFound':
+      return { body: { error: error.message }, status: 400 };
+    // 集約単位の上限違反
+    case 'OrderLimitExceeded':
+      return { body: { error: error.message }, status: 400 };
+    // 入力は正しいがサーバ側の状態と衝突している
+    case 'InsufficientStock':
+      return { body: { error: error.message }, status: 409 };
     // D1 の失敗はクライアント起因ではないので詳細を返さない
     case 'D1Error':
       return { body: { error: 'Internal Server Error' }, status: 500 };

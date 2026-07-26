@@ -29,6 +29,20 @@
       "when": 1785055193747,
       "tag": "0003_perfect_tiger_shark",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1785064251696,
+      "tag": "0004_mature_ravenous",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1785064252356,
+      "tag": "0005_seed_example_products",
+      "breakpoints": true
     }
   ]
 }

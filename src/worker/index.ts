@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { createAuth } from './auth';
 import { type AuthEnv, sessionMiddleware } from './auth/middleware';
 import { type ContextVariables, contextMiddleware } from './context';
+import exampleOrderRoute from './routes/example-order';
 import exampleTodoRoute from './routes/example-todo';
 
 /** auth の Variables と ApplicationContext を合成した、この app のルート型 */
@@ -18,7 +19,8 @@ const app = new Hono<RootEnv>()
   // リクエストごとに ApplicationContext を組み立てて c.var.context に載せる
   .use('*', contextMiddleware)
   .get('/health', (c) => c.json({ status: 'ok' }))
-  .route('/example-todo', exampleTodoRoute);
+  .route('/example-todo', exampleTodoRoute)
+  .route('/example-order', exampleOrderRoute);
 
 // run_worker_first: ["/api/*"] により /api/* だけが Worker に到達する
 export default {
