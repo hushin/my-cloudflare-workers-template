@@ -76,16 +76,26 @@ src/
 **DB も認証もこのテンプレートには含まれていない**（要らないアプリがあるため既定では入れない）。
 必要になったら add-on skill で追加する。skill には手順と貼り付け用の実ファイル（`assets/`）が入っている。
 
-| 追加したいもの              | 適用する skill    | 前提                    |
-| --------------------------- | ----------------- | ----------------------- |
-| Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
-| Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
+| 追加したいもの                           | 適用する skill    | 前提                    |
+| ---------------------------------------- | ----------------- | ----------------------- |
+| Cloudflare D1 + Drizzle ORM              | `add-d1-drizzle`  | なし                    |
+| Better Auth（GitHub OAuth）              | `add-better-auth` | `add-d1-drizzle` 適用済 |
+| DMMF 構成（domain / workflows / Result） | `add-dmmf`        | なし（D1 と併用可）     |
 
 - 「データを永続化したい」「テーブルを追加したい」なら、まず `add-d1-drizzle` が適用済みか確認する。
   未適用なら手作りせず skill から適用する
 - 適用済みかどうかは `src/worker/db/` と `wrangler.json` の `d1_databases` の有無で判断できる
-- skill の手順が実態と合っていることは、両方を適用しきった **参照実装ブランチ `example/d1-auth`** で担保する。
-  main を更新したらこのブランチを rebase して `pnpm check && pnpm test` を通す
+- **ビジネスロジックが route に溜まってきたら `add-dmmf`** を検討する。domain / workflows /
+  repositories に分け、エラーを `Result` で扱う構成になる（永続化前提なので D1 が必要）
+- skill の手順が実態と合っていることは **参照実装ブランチ**で担保する。
+  main を更新したら対応するブランチを rebase して `pnpm check && pnpm test` を通す
+
+  | 参照実装ブランチ       | 適用済みの skill                     |
+  | ---------------------- | ------------------------------------ |
+  | `example/d1-auth`      | `add-d1-drizzle` + `add-better-auth` |
+  | `example/dmmf`         | `add-dmmf`                           |
+  | `example/dmmf-d1-auth` | 上記すべて                           |
+
 - `pnpm skills:check` で `assets/` と参照実装ブランチのズレを検出できる（skill を編集したら実行する）
 
 ## テストの書き分け
@@ -118,3 +128,4 @@ UI のために `render()` する専用テストファイルは作らず story �
 | react-app のレイヤー構成（Feature-Sliced Design）       | `fsd` skill                                                                 |
 | D1 + Drizzle ORM の追加                                 | `add-d1-drizzle` skill                                                      |
 | 認証（Better Auth / GitHub OAuth）の追加                | `add-better-auth` skill                                                     |
+| DMMF 構成（domain / workflows / Result）への再編        | `add-dmmf` skill                                                            |
