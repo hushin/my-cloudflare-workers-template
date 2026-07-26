@@ -26,9 +26,11 @@ jobs:
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -euo pipefail
-          PR=$(gh pr list --head "$HEAD_BRANCH" --json number,author --limit 1 -q '.[0]')
-          echo "number=$(echo "$PR" | jq -r '.number // empty')" >> "$GITHUB_OUTPUT"
-          echo "author=$(echo "$PR" | jq -r '.author.login // empty')" >> "$GITHUB_OUTPUT"
+          # gh pr list の author.login は "app/dependabot" に正規化されるため、
+          # "dependabot[bot]" がそのまま返る REST API を直接叩く
+          PR=$(gh api -X GET "repos/$GH_REPO/pulls" -f state=open -f head="${GH_REPO%%/*}:$HEAD_BRANCH")
+          echo "number=$(echo "$PR" | jq -r '.[0].number // empty')" >> "$GITHUB_OUTPUT"
+          echo "author=$(echo "$PR" | jq -r '.[0].user.login // empty')" >> "$GITHUB_OUTPUT"
 
       # dependabot/fetch-metadata は PR コンテキストでしか動かない（v3 で pr-number 入力が廃止）ため、
       # Dependabot がコミットメッセージに埋め込む updated-dependencies trailer から直接判定する
