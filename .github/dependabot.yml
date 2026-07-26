@@ -12,6 +12,10 @@ updates:
     cooldown:
       default-days: 7
       semver-major-days: 14
+    ignore:
+      # @types/node の major は mise.toml の node バージョンに合わせて手動で上げる
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       # major も含めてまとめる（バラバラに上げると噛み合わないエコシステム）
       react:
