@@ -1,13 +1,22 @@
 import { Hono } from 'hono';
 import { createAuth } from './auth';
 import { type AuthEnv, sessionMiddleware } from './auth/middleware';
+import { type ContextVariables, contextMiddleware } from './context';
 import exampleTodoRoute from './routes/example-todo';
 
-const app = new Hono<AuthEnv>()
+/** auth の Variables と ApplicationContext を合成した、この app のルート型 */
+type RootEnv = {
+  Bindings: Env;
+  Variables: AuthEnv['Variables'] & ContextVariables;
+};
+
+const app = new Hono<RootEnv>()
   .basePath('/api')
   // auth 自身のエンドポイントはセッション解決前に処理させる
   .on(['GET', 'POST'], '/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
   .use('*', sessionMiddleware)
+  // リクエストごとに ApplicationContext を組み立てて c.var.context に載せる
+  .use('*', contextMiddleware)
   .get('/health', (c) => c.json({ status: 'ok' }))
   .route('/example-todo', exampleTodoRoute);
 

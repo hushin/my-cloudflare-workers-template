@@ -114,6 +114,24 @@ export const CancelEditTodo: Story = {
   },
 };
 
+export const ToggleStatus: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await canvas.findByText('Storybook を導入する');
+
+    // 未完了のものを完了にすると表示が Reopen に変わる
+    const [completeButton] = canvas.getAllByRole('button', { name: 'Complete' });
+    await userEvent.click(completeButton);
+    await waitFor(() => expect(canvas.getAllByRole('button', { name: 'Reopen' })).toHaveLength(2));
+
+    // 完了済みのものを未完了に戻す
+    const [reopenButton] = canvas.getAllByRole('button', { name: 'Reopen' });
+    await userEvent.click(reopenButton);
+    await waitFor(() =>
+      expect(canvas.getAllByRole('button', { name: 'Complete' })).toHaveLength(1),
+    );
+  },
+};
+
 export const DeleteTodo: Story = {
   play: async ({ canvas, userEvent }) => {
     await canvas.findByText('Storybook を導入する');

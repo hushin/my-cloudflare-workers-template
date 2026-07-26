@@ -9,8 +9,8 @@ export type ExampleTodo = InferResponseType<
 >[number];
 
 export const exampleTodoFixtures: ExampleTodo[] = [
-  { id: 'todo-1', title: 'Storybook を導入する' },
-  { id: 'todo-2', title: 'MSW でデータをモックする' },
+  { id: 'todo-1', title: 'Storybook を導入する', status: 'active' },
+  { id: 'todo-2', title: 'MSW でデータをモックする', status: 'completed' },
 ];
 
 // ハンドラが共有するインメモリストア。
@@ -35,7 +35,11 @@ const successHandlers = [
 
   createHandler({ path: '/api/example-todo', method: '$post' })(({ input }) => {
     createdCount += 1;
-    const todo: ExampleTodo = { id: `todo-new-${createdCount}`, title: input.json.title };
+    const todo: ExampleTodo = {
+      id: `todo-new-${createdCount}`,
+      title: input.json.title,
+      status: 'active',
+    };
     todos.set(todo.id, todo);
     return { status: 201, output: todo };
   }),
@@ -46,6 +50,16 @@ const successHandlers = [
       return { status: 404, output: { error: 'Not Found' } };
     }
     const updated: ExampleTodo = { ...existing, title: input.json.title };
+    todos.set(updated.id, updated);
+    return { status: 200, output: updated };
+  }),
+
+  createHandler({ path: '/api/example-todo/:id/status', method: '$patch' })(({ input }) => {
+    const existing = todos.get(input.param.id);
+    if (!existing) {
+      return { status: 404, output: { error: 'Not Found' } };
+    }
+    const updated: ExampleTodo = { ...existing, status: input.json.status };
     todos.set(updated.id, updated);
     return { status: 200, output: updated };
   }),

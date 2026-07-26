@@ -13,6 +13,13 @@ export const exampleTodos = sqliteTable(
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    // ドメインの ActiveExampleTodo | CompletedExampleTodo に対応する列。
+    // 「completed なのに completed_at が無い」行は作れてしまうので、
+    // 行 → ドメインの変換（repository）で検証して弾く
+    status: text('status', { enum: ['active', 'completed'] })
+      .notNull()
+      .default('active'),
+    completedAt: integer('completed_at', { mode: 'timestamp_ms' }),
   },
   // 一覧の並び替えに使う列なのでインデックスを張る
   (table) => [index('example_todos_created_at_idx').on(table.createdAt)],

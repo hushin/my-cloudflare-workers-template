@@ -3,7 +3,9 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    // msw-hono.ts が @/worker の型を読むため、worker のソースもこのプログラムに入る。
+    // worker 側（tsconfig.node.json）の lib と揃えないと ES2023 の API が解決できない
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "types": ["./worker-configuration.d.ts", "msw-storybook-addon/types"],
