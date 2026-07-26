@@ -86,15 +86,15 @@ src/
   未適用なら手作りせず skill から適用する
 - 適用済みかどうかは `src/worker/db/` と `wrangler.json` の `d1_databases` の有無で判断できる
 - **ビジネスロジックが route に溜まってきたら `add-dmmf`** を検討する。domain / workflows /
-  repositories に分け、エラーを `Result` で扱う構成になる（永続化前提なので D1 が必要）
+  repositories に分け、エラーを `Result` で扱う構成になる（永続化前提なので D1 が必要）。
+  適用すると `.dependency-cruiser.mjs` に domain / workflows のレイヤールールが増える
 - skill の手順が実態と合っていることは **参照実装ブランチ**で担保する。
   main を更新したら対応するブランチを rebase して `pnpm check && pnpm test` を通す
 
-  | 参照実装ブランチ       | 適用済みの skill                     |
-  | ---------------------- | ------------------------------------ |
-  | `example/d1-auth`      | `add-d1-drizzle` + `add-better-auth` |
-  | `example/dmmf`         | `add-dmmf`                           |
-  | `example/dmmf-d1-auth` | 上記すべて                           |
+  | 参照実装ブランチ       | 適用済みの skill                                                       |
+  | ---------------------- | ---------------------------------------------------------------------- |
+  | `example/d1-auth`      | `add-d1-drizzle` + `add-better-auth`                                   |
+  | `example/dmmf-d1-auth` | 上記 + `add-dmmf`（`add-dmmf` は D1 が前提なので単独のブランチは無い） |
 
 - `pnpm skills:check` で `assets/` と参照実装ブランチのズレを検出できる（skill を編集したら実行する）
 

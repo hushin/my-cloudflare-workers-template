@@ -43,6 +43,34 @@ assets には題材が 2 つ入っている。**まず example-todo を読み、
 | `example-todo`  | 値オブジェクト、判別可能ユニオンでの状態遷移、1 テーブル 1 書き込みの最小形                  |
 | `example-order` | 複数ステップの合流（ROP）、集約をまたぐ更新の `db.batch()`、業務エラーの型分け、親子テーブル |
 
+## レイヤー規約（`.dependency-cruiser.mjs` で機械的に検査）
+
+**「domain は純粋」「workflow は DB に触らない」はレビューではなく lint で守る。**
+`assets/.dependency-cruiser.mjs` に次のルールが入っており、`pnpm lint` で検査される
+（テンプレート共通のルール ── `shared` → `worker` 禁止など ── はそのまま残してある）。
+
+| 禁止する向き                                                             | 破ると何が起きるか                                        |
+| ------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `domain/` → npm（`neverthrow` 以外）                                     | ドメインのテストに DB や env が必要になる                 |
+| `domain/` → `workflows` `repositories` `db` `routes` `auth` `context.ts` | 依存の向きが逆転する（常に外 → 内）                       |
+| `workflows/` → `domain` `lib` 以外の worker                              | IO を高階関数で受け取る形が崩れ、テストに D1 が必要になる |
+| `domain/` `workflows/` → `src/shared`                                    | DTO（zod スキーマ）がドメインの型に混ざる                 |
+
+- `workflows/**/*.test.ts` は最後のルールから除外している。「依存側のエラーが
+  そのまま通り抜ける」ことを確かめるテストは `D1Error` を組み立てる必要があるため
+- **`import type` も依存として数える設定**（`tsPreCompilationDeps: true`）。
+  型だけの import で層をまたぐ抜け道を塞ぐ意図がある
+
+### `Result` の取りこぼしは lint で守れない
+
+`eslint-plugin-neverthrow`（`must-use-result`）は使えない。**oxlint の JS plugins は
+型認識を必要とするルールに未対応**で、このルールは TS の type checker を使う。
+ESLint を並走させない限り導入できないので、次を人間側の規律として守る。
+
+- route では必ず `match` で畳む（`Result` を返したまま放置しない）
+- `ResultAsync` の取りこぼしは oxlint の `typescript/no-floating-promises` が部分的に拾う
+  （`Result` は同期なので拾えない）
+
 ## 設計原則
 
 1. **関数型スタイルを適用するのは `domain/` と `workflows/` だけ。** `routes/` `repositories/`
@@ -106,6 +134,7 @@ react-app の 3 ファイルは既存を上書き）。
 | `src/shared/schemas/example-todo.ts`         | `status` の DTO スキーマを追加（**brand は付けない**）                    |
 | `src/shared/schemas/example-order.ts`        | 注文の DTO スキーマ（集約単位のルールは書かない）                         |
 | `src/react-app/pages/example-todo/ui/*`      | 追加した `status` への追従と完了トグル                                    |
+| `.dependency-cruiser.mjs`                    | 既存の設定を上書き。domain / workflows のレイヤールールが増えている       |
 
 ### 4. index.ts に middleware を足す
 
