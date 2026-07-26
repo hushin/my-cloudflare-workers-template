@@ -136,6 +136,24 @@ export const CancelEditTodo: Story = {
   },
 };
 
+export const ToggleStatus: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await waitFor(() => expect(canvas.getByText('Storybook を導入する')).toBeVisible());
+
+    // 未完了のものを完了にする
+    const active = canvas.getByRole('checkbox', { name: 'Storybook を導入する' });
+    expect(active).not.toBeChecked();
+    await userEvent.click(active);
+    await waitFor(() => expect(active).toBeChecked());
+
+    // 完了済みのものを未完了に戻す
+    const completed = canvas.getByRole('checkbox', { name: 'MSW でデータをモックする' });
+    expect(completed).toBeChecked();
+    await userEvent.click(completed);
+    await waitFor(() => expect(completed).not.toBeChecked());
+  },
+};
+
 export const DeleteTodo: Story = {
   play: async ({ canvas, userEvent }) => {
     await canvas.findByText('Storybook を導入する');

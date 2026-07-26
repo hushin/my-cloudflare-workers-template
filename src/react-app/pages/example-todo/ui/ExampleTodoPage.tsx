@@ -22,6 +22,7 @@ function getErrorMessage(err: unknown): string {
 const exampleTodoQueryKey = ['example-todo'];
 
 type ExampleTodo = InferResponseType<(typeof client.api)['example-todo']['$get'], 200>[number];
+type ExampleTodoStatus = ExampleTodo['status'];
 
 export function ExampleTodoPage() {
   const queryClient = useQueryClient();
@@ -47,6 +48,15 @@ export function ExampleTodoPage() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, title }: { id: string; title: string }) => {
       await client.api['example-todo'][':id'].$put({ param: { id }, json: { title } });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: exampleTodoQueryKey });
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: ExampleTodoStatus }) => {
+      await client.api['example-todo'][':id'].status.$patch({ param: { id }, json: { status } });
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: exampleTodoQueryKey });
@@ -101,7 +111,14 @@ export function ExampleTodoPage() {
               <TodoItem
                 key={todo.id}
                 todo={todo}
+                isToggling={statusMutation.isPending && statusMutation.variables?.id === todo.id}
                 isDeleting={deleteMutation.isPending && deleteMutation.variables === todo.id}
+                onToggle={() =>
+                  statusMutation.mutate({
+                    id: todo.id,
+                    status: todo.status === 'completed' ? 'active' : 'completed',
+                  })
+                }
                 onEdit={() => setEditingId(todo.id)}
                 onDelete={() => deleteMutation.mutate(todo.id)}
               />
@@ -183,23 +200,63 @@ function TodoComposer({
 
 function TodoItem({
   todo,
+  isToggling,
   isDeleting,
+  onToggle,
   onEdit,
   onDelete,
 }: {
   todo: ExampleTodo;
+  isToggling: boolean;
   isDeleting: boolean;
+  onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const isCompleted = todo.status === 'completed';
+
   return (
     <li
       className={cn(
-        'group flex items-start gap-4 py-3.5 transition-opacity',
-        isDeleting && 'opacity-40',
+        'group flex items-start gap-3 py-3.5 transition-opacity',
+        (isDeleting || isToggling) && 'opacity-40',
       )}
     >
-      <span className="min-w-0 flex-1 text-sm leading-6 font-medium wrap-break-word">
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={isCompleted}
+        aria-label={todo.title}
+        disabled={isToggling}
+        onClick={onToggle}
+        className={cn(
+          'mt-[3px] flex size-[18px] shrink-0 items-center justify-center rounded-[6px] border transition-colors outline-none',
+          'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+          'disabled:pointer-events-none disabled:opacity-50',
+          isCompleted
+            ? 'border-transparent bg-foreground/10 text-foreground/70 hover:bg-foreground/15'
+            : 'border-border bg-card hover:border-foreground/40',
+        )}
+      >
+        {isCompleted && (
+          <svg viewBox="0 0 12 12" className="size-3" aria-hidden="true">
+            <path
+              d="M2.5 6.25 5 8.75l4.5-5.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </button>
+      <span
+        className={cn(
+          'min-w-0 flex-1 text-sm leading-6 font-medium wrap-break-word',
+          isCompleted && 'text-muted-foreground line-through',
+        )}
+      >
         {todo.title}
       </span>
       <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">

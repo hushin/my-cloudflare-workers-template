@@ -1,17 +1,36 @@
 import { z } from 'zod';
 import { env } from 'cloudflare:test';
-import app from './example-todo';
+import { app } from '@/worker/index';
 
-const todoSchema = z.object({ id: z.string(), title: z.string() });
+const todoSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  status: z.enum(['active', 'completed']),
+});
 const todosSchema = z.array(todoSchema);
 
+const BASE = '/api/example-todo';
+
+// ApplicationContext を載せる middleware は index.ts で登録しているので、
+// route 単体ではなくマウント済みの app 経由でリクエストする。
 const createTodo = (title: string) =>
   app.request(
-    '/',
+    BASE,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title }),
+    },
+    env,
+  );
+
+const changeStatus = (id: string, status: string) =>
+  app.request(
+    `${BASE}/${id}/status`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
     },
     env,
   );
@@ -24,7 +43,7 @@ describe('example-todo routes', () => {
   });
 
   it('GET / returns empty array initially', async () => {
-    const res = await app.request('/', {}, env);
+    const res = await app.request(BASE, {}, env);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([]);
   });
@@ -34,6 +53,7 @@ describe('example-todo routes', () => {
     expect(res.status).toBe(201);
     const todo = todoSchema.parse(await res.json());
     expect(todo.title).toBe('Buy milk');
+    expect(todo.status).toBe('active');
   });
 
   it('POST / with empty title returns 400', async () => {
@@ -43,7 +63,7 @@ describe('example-todo routes', () => {
 
   it('POST / with missing title returns 400', async () => {
     const res = await app.request(
-      '/',
+      BASE,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,7 +83,7 @@ describe('example-todo routes', () => {
     });
 
     it('GET / returns array with the todo', async () => {
-      const res = await app.request('/', {}, env);
+      const res = await app.request(BASE, {}, env);
       expect(res.status).toBe(200);
       const todos = todosSchema.parse(await res.json());
       expect(todos).toHaveLength(1);
@@ -73,7 +93,7 @@ describe('example-todo routes', () => {
 
     it('PUT /:id updates the todo', async () => {
       const res = await app.request(
-        `/${todoId}`,
+        `${BASE}/${todoId}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -87,14 +107,14 @@ describe('example-todo routes', () => {
       expect(updated.title).toBe('Updated title');
 
       // 永続化を確認
-      const getRes = await app.request('/', {}, env);
+      const getRes = await app.request(BASE, {}, env);
       const todos = todosSchema.parse(await getRes.json());
       expect(todos[0].title).toBe('Updated title');
     });
 
     it('PUT /:id with non-existent id returns 404', async () => {
       const res = await app.request(
-        '/non-existent-id',
+        `${BASE}/non-existent-id`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -108,7 +128,7 @@ describe('example-todo routes', () => {
 
     it('PUT /:id with empty title returns 400', async () => {
       const res = await app.request(
-        `/${todoId}`,
+        `${BASE}/${todoId}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -119,33 +139,66 @@ describe('example-todo routes', () => {
       expect(res.status).toBe(400);
     });
 
+    it('PATCH /:id/status completes and reopens the todo', async () => {
+      const completeRes = await changeStatus(todoId, 'completed');
+      expect(completeRes.status).toBe(200);
+      expect(todoSchema.parse(await completeRes.json()).status).toBe('completed');
+
+      // 一覧にも反映される
+      const listed = todosSchema.parse(await (await app.request(BASE, {}, env)).json());
+      expect(listed[0].status).toBe('completed');
+
+      const reopenRes = await changeStatus(todoId, 'active');
+      expect(reopenRes.status).toBe(200);
+      expect(todoSchema.parse(await reopenRes.json()).status).toBe('active');
+    });
+
+    it('PATCH /:id/status is idempotent', async () => {
+      await changeStatus(todoId, 'completed');
+      const res = await changeStatus(todoId, 'completed');
+
+      expect(res.status).toBe(200);
+      expect(todoSchema.parse(await res.json()).status).toBe('completed');
+    });
+
+    it('PATCH /:id/status with unknown status returns 400', async () => {
+      const res = await changeStatus(todoId, 'archived');
+      expect(res.status).toBe(400);
+    });
+
+    it('PATCH /:id/status with non-existent id returns 404', async () => {
+      const res = await changeStatus('non-existent-id', 'completed');
+      expect(res.status).toBe(404);
+      expect(await res.json()).toEqual({ error: 'Not Found' });
+    });
+
     it('DELETE /:id deletes the todo', async () => {
-      const res = await app.request(`/${todoId}`, { method: 'DELETE' }, env);
+      const res = await app.request(`${BASE}/${todoId}`, { method: 'DELETE' }, env);
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ id: todoId });
 
       // 消えていることを確認
-      const getRes = await app.request('/', {}, env);
+      const getRes = await app.request(BASE, {}, env);
       expect(await getRes.json()).toEqual([]);
     });
 
     it('DELETE /:id with non-existent id returns 404', async () => {
-      const res = await app.request('/non-existent-id', { method: 'DELETE' }, env);
+      const res = await app.request(`${BASE}/non-existent-id`, { method: 'DELETE' }, env);
       expect(res.status).toBe(404);
       expect(await res.json()).toEqual({ error: 'Not Found' });
     });
 
     it('full CRUD flow', async () => {
-      // Create → List → Update → List → Delete → List
+      // Create → List → Update → List → Complete → Delete → List
       const createRes = await createTodo('CRUD test');
       expect(createRes.status).toBe(201);
       const created = todoSchema.parse(await createRes.json());
 
-      const list1 = todosSchema.parse(await (await app.request('/', {}, env)).json());
+      const list1 = todosSchema.parse(await (await app.request(BASE, {}, env)).json());
       expect(list1).toHaveLength(2); // original + new
 
       await app.request(
-        `/${created.id}`,
+        `${BASE}/${created.id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -154,13 +207,17 @@ describe('example-todo routes', () => {
         env,
       );
 
-      const list2 = todosSchema.parse(await (await app.request('/', {}, env)).json());
+      const list2 = todosSchema.parse(await (await app.request(BASE, {}, env)).json());
       expect(list2.find((t) => t.id === created.id)!.title).toBe('CRUD updated');
 
-      await app.request(`/${created.id}`, { method: 'DELETE' }, env);
+      await changeStatus(created.id, 'completed');
+      const list3 = todosSchema.parse(await (await app.request(BASE, {}, env)).json());
+      expect(list3.find((t) => t.id === created.id)!.status).toBe('completed');
 
-      const list3 = todosSchema.parse(await (await app.request('/', {}, env)).json());
-      expect(list3).toHaveLength(1); // only original remains
+      await app.request(`${BASE}/${created.id}`, { method: 'DELETE' }, env);
+
+      const list4 = todosSchema.parse(await (await app.request(BASE, {}, env)).json());
+      expect(list4).toHaveLength(1); // only original remains
     });
   });
 });
