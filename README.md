@@ -13,7 +13,7 @@
 | フォーム       | TanStack Form                                                                                 |
 | データ取得     | TanStack Query                                                                                |
 | バックエンド   | Hono 4（Workers 上で動作）, zod, @hono/zod-validator                                          |
-| ビルドツール   | Vite 7, @cloudflare/vite-plugin, @tanstack/router-plugin                                      |
+| ビルドツール   | Vite 8, @cloudflare/vite-plugin, @tanstack/router-plugin                                      |
 | デプロイ       | Wrangler 4, Cloudflare Workers                                                                |
 | Lint / Format  | oxlint, oxfmt, steiger（FSD 構造）, dependency-cruiser（依存の向き）                          |
 | UI カタログ    | Storybook 10（@storybook/tanstack-react）, MSW                                                |

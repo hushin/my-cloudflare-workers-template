@@ -5,7 +5,7 @@
 個人用の Cloudflare Workers Web アプリのテンプレートリポジトリ。
 [このアプリの概要説明]
 
-Cloudflare Workers / Hono 4 / React 19 + Vite 7 / TanStack Router・Form・Query /
+Cloudflare Workers / Hono 4 / React 19 + Vite 8 / TanStack Router・Form・Query /
 shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxfmt
 
 ## 作業のルール
