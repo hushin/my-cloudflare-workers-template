@@ -46,16 +46,12 @@ jobs:
       - name: Lint, build & deploy dry-run
         run: pnpm check
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
-
+      # chromium-headless-shell のみをインストールする（chromium 指定だと
+      # ヘッドフル版も一緒に落ちてくる）。--with-deps（apt 経由の依存インストール）
+      # は GitHub Actions の ubuntu ランナーでは不要なため外し、install 自体が
+      # 数秒で終わるのでキャッシュも持たない。
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --only-shell chromium
 
       # Storybook の vitest browser mode はコールドキャッシュの初回だけ落ちることがある
       # （docs/storybook-vitest-first-run-flake.md）。Vite の依存最適化結果を持ち越して
