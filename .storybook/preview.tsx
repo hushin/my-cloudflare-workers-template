@@ -1,11 +1,10 @@
 /// <reference types="vite/client" />
+import { setupWorker } from 'msw/browser';
 import type { Preview } from '@storybook/tanstack-react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { initialize, mswLoader } from 'msw-storybook-addon';
+import { mswLoader } from 'msw-storybook-addon/csf3';
 import '../src/react-app/index.css';
-
-initialize({ quiet: true, onUnhandledRequest: 'bypass' });
 
 const preview: Preview = {
   // @storybook/tanstack-react が各 story を memory-backed な TanStack Router で
@@ -24,7 +23,13 @@ const preview: Preview = {
       );
     },
   ],
-  loaders: [mswLoader],
+  loaders: [
+    mswLoader(async () => {
+      const worker = setupWorker();
+      await worker.start({ quiet: true, onUnhandledRequest: 'bypass' });
+      return worker;
+    }),
+  ],
   parameters: {
     controls: {
       matchers: {

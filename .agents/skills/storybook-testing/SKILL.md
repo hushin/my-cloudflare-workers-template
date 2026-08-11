@@ -149,7 +149,11 @@ await expect(await canvas.findByText('done')).toBeVisible();
 ## API のモック（MSW）
 
 `.storybook/preview.tsx` で `mswLoader` を有効化済み。ハンドラは story の
-`parameters.msw.handlers` に渡す。
+`beforeEach` フックで `msw.use()` に渡して登録する（`parameters.msw` は
+msw-storybook-addon v3 で非推奨）。meta の `beforeEach` は全 story で実行され、
+story 側の `beforeEach` はその後に追加実行される。`use()` はハンドラを先頭に積むので、
+同じパス・メソッドなら story 側のハンドラが優先される（meta の他メソッドのハンドラは
+残る。ハンドラ自体は story 間で自動リセットされる）。
 
 ハンドラは **`createHandler`（`@/react-app/shared/lib`）で定義する**。パス・メソッド・
 input（param/query/json）・status・output がすべて Hono の `AppType` から型付けされるため、
@@ -175,15 +179,26 @@ state を持つなら **必ずリセット関数を export し、`beforeEach` �
 ```tsx
 const meta = {
   component: ExampleTodoPage,
-  beforeEach: () => {
-    resetExampleTodos();
-  },
-  parameters: { msw: { handlers: exampleTodoHandlers.success } },
+  beforeEach: [
+    () => {
+      resetExampleTodos();
+    },
+    ({ msw }) => {
+      msw.use(...exampleTodoHandlers.success);
+    },
+  ],
 } satisfies Meta<typeof ExampleTodoPage>;
 
 export const Empty: Story = {
   beforeEach: () => {
     resetExampleTodos([]);
+  },
+};
+
+// ハンドラを差し替える story の例（use() は先頭に積まれるので同じパス・メソッドは上書きされる）
+export const FetchError: Story = {
+  beforeEach: ({ msw }) => {
+    msw.use(...exampleTodoHandlers.error);
   },
 };
 ```

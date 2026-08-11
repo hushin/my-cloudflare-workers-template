@@ -6,7 +6,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "types": ["./worker-configuration.d.ts"],
+    "types": ["./worker-configuration.d.ts", "msw-storybook-addon/types"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",

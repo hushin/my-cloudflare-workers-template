@@ -13,7 +13,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const SignedOut: Story = {
-  parameters: { msw: { handlers: sessionHandlers.signedOut } },
+  beforeEach: ({ msw }) => {
+    msw.use(...sessionHandlers.signedOut);
+  },
   play: async ({ canvas }) => {
     await expect(canvas.getByRole('link', { name: 'My App' })).toBeVisible();
     await expect(canvas.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
@@ -29,7 +31,9 @@ export const SignedOut: Story = {
 };
 
 export const SignedIn: Story = {
-  parameters: { msw: { handlers: sessionHandlers.signedIn } },
+  beforeEach: ({ msw }) => {
+    msw.use(...sessionHandlers.signedIn);
+  },
   play: async ({ canvas }) => {
     await expect(await canvas.findByText('テスト ユーザー')).toBeVisible();
     await expect(canvas.getByRole('button', { name: 'サインアウト' })).toBeEnabled();
