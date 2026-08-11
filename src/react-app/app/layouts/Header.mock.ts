@@ -38,8 +38,9 @@ export const sessionHandlers = {
  * 何もしないと 2 本目以降が 1 本目のセッションを再利用して msw のモックを無視する。
  * `$sessionSignal` を notify すると再取得が走る。
  *
- * msw のハンドラは preview の `mswLoader`（global loader）で差し替わるので、
- * これは **loader として** 呼ぶ（global loader の後に実行される）。
+ * msw のハンドラは story の `beforeEach` で登録される（global loader の `mswLoader` は
+ * 各 story の前にハンドラをリセットする）。再取得は非同期で処理されるので、
+ * この loader は **global loader の後に実行される** loader として呼ぶ。
  */
 export const refetchSession = () => {
   authClient.$store.notify('$sessionSignal');
