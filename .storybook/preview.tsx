@@ -2,10 +2,11 @@
 import type { Preview } from '@storybook/tanstack-react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { initialize, mswLoader } from 'msw-storybook-addon';
+import { mswLoader } from 'msw-storybook-addon/csf3';
 import '../src/react-app/index.css';
 
-initialize({ quiet: true, onUnhandledRequest: 'bypass' });
+// msw-storybook-addon v3 は worker の作成・起動を自前で行う（quiet で起動し、
+// アセットや Storybook 内部のリクエストは自動的に無視される）。
 
 const preview: Preview = {
   // @storybook/tanstack-react が各 story を memory-backed な TanStack Router で
@@ -24,7 +25,7 @@ const preview: Preview = {
       );
     },
   ],
-  loaders: [mswLoader],
+  loaders: [mswLoader()],
   parameters: {
     controls: {
       matchers: {

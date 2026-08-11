@@ -6,11 +6,9 @@ import { exampleTodoHandlers, resetExampleTodos } from './ExampleTodoPage.mock';
 const meta = {
   component: ExampleTodoPage,
   // story ごとにモックの状態を初期化して、実行順に依存しないようにする
-  beforeEach: () => {
+  beforeEach: ({ msw }) => {
     resetExampleTodos();
-  },
-  parameters: {
-    msw: { handlers: exampleTodoHandlers.success },
+    msw.use(...exampleTodoHandlers.success);
   },
 } satisfies Meta<typeof ExampleTodoPage>;
 
@@ -35,8 +33,9 @@ export const Empty: Story = {
 };
 
 export const Loading: Story = {
-  parameters: {
-    msw: { handlers: exampleTodoHandlers.loading },
+  beforeEach: ({ msw }) => {
+    // meta の beforeEach の後に実行されるため、loading ハンドラが優先される
+    msw.use(...exampleTodoHandlers.loading);
   },
   play: async ({ canvas }) => {
     await expect(await canvas.findByText('Loading...')).toBeVisible();
@@ -44,8 +43,8 @@ export const Loading: Story = {
 };
 
 export const FetchError: Story = {
-  parameters: {
-    msw: { handlers: exampleTodoHandlers.error },
+  beforeEach: ({ msw }) => {
+    msw.use(...exampleTodoHandlers.error);
   },
   play: async ({ canvas }) => {
     await expect(await canvas.findByText('Failed to load todos.')).toBeVisible();

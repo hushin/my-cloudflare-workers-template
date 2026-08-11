@@ -148,8 +148,9 @@ await expect(await canvas.findByText('done')).toBeVisible();
 
 ## API のモック（MSW）
 
-`.storybook/preview.tsx` で `mswLoader` を有効化済み。ハンドラは story の
-`parameters.msw.handlers` に渡す。
+`.storybook/preview.tsx` で `mswLoader()`（`msw-storybook-addon/csf3`）を有効化済み。
+ハンドラは `beforeEach({ msw })` の `msw.use(...)` で登録する。ハンドラは story 間で
+自動的にリセットされる。
 
 ハンドラは **`createHandler`（`@/react-app/shared/lib`）で定義する**。パス・メソッド・
 input（param/query/json）・status・output がすべて Hono の `AppType` から型付けされるため、
@@ -175,15 +176,24 @@ state を持つなら **必ずリセット関数を export し、`beforeEach` �
 ```tsx
 const meta = {
   component: ExampleTodoPage,
-  beforeEach: () => {
+  // story 共通のハンドラは meta の beforeEach に書く
+  beforeEach: ({ msw }) => {
     resetExampleTodos();
+    msw.use(exampleTodoHandlers.success);
   },
-  parameters: { msw: { handlers: exampleTodoHandlers.success } },
 } satisfies Meta<typeof ExampleTodoPage>;
 
 export const Empty: Story = {
   beforeEach: () => {
     resetExampleTodos([]);
+  },
+};
+
+// story ごとにハンドラを差し替えるときは story の beforeEach で上書きする
+// （meta → story の順に実行され、後から use したハンドラが優先される）
+export const FetchError: Story = {
+  beforeEach: ({ msw }) => {
+    msw.use(exampleTodoHandlers.error);
   },
 };
 ```
