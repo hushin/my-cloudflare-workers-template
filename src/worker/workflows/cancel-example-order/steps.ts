@@ -46,11 +46,9 @@ export const applyCancel = (order: PlacedOrder, at: Date): CancelledOrder => can
 
 export const toEvents = (order: CancelledOrder): readonly CancelExampleOrderEvent[] => [
   { kind: 'ExampleOrderCancelled', order },
-  ...order.lines.map(
-    (line): CancelExampleOrderEvent => ({
-      kind: 'StockReleased',
-      productCode: line.productCode,
-      quantity: line.quantity,
-    }),
-  ),
+  ...order.lines.map((line): CancelExampleOrderEvent => ({
+    kind: 'StockReleased',
+    productCode: line.productCode,
+    quantity: line.quantity,
+  })),
 ];
