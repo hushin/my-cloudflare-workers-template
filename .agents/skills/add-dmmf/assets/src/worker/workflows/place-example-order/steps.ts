@@ -30,11 +30,10 @@ export const validateCommand = (
   command: PlaceExampleOrderCommand,
 ): Result<ValidatedPlaceExampleOrderCommand, ValidationError | OrderLimitExceeded> =>
   Result.combine(
-    command.lines.map(
-      (line): Result<OrderLine, ValidationError> =>
-        ProductCode(line.productCode).andThen((productCode) =>
-          Quantity(line.quantity).map((quantity) => ({ productCode, quantity })),
-        ),
+    command.lines.map((line): Result<OrderLine, ValidationError> =>
+      ProductCode(line.productCode).andThen((productCode) =>
+        Quantity(line.quantity).map((quantity) => ({ productCode, quantity })),
+      ),
     ),
   )
     .andThen((lines) => OrderId(command.orderId).andThen((id) => draftOrder(id, lines)))
@@ -82,22 +81,19 @@ export const priceOrder = ({
   at,
 }: ResolvedOrder): Result<PlacedOrder, ValidationError> =>
   Result.combine(
-    draft.lines.map(
-      (line): Result<PricedOrderLine, ValidationError> =>
-        okOr(
-          products.get(line.productCode),
-          () => new ValidationError(`商品が解決されていません: ${line.productCode}`),
-        ).andThen((product) => priceLine(line, product.unitPrice)),
+    draft.lines.map((line): Result<PricedOrderLine, ValidationError> =>
+      okOr(
+        products.get(line.productCode),
+        () => new ValidationError(`商品が解決されていません: ${line.productCode}`),
+      ).andThen((product) => priceLine(line, product.unitPrice)),
     ),
   ).andThen((lines) => place(draft, lines, at));
 
 export const toEvents = (order: PlacedOrder): readonly PlaceExampleOrderEvent[] => [
   { kind: 'ExampleOrderPlaced', order },
-  ...order.lines.map(
-    (line): PlaceExampleOrderEvent => ({
-      kind: 'StockReserved',
-      productCode: line.productCode,
-      quantity: line.quantity,
-    }),
-  ),
+  ...order.lines.map((line): PlaceExampleOrderEvent => ({
+    kind: 'StockReserved',
+    productCode: line.productCode,
+    quantity: line.quantity,
+  })),
 ];
