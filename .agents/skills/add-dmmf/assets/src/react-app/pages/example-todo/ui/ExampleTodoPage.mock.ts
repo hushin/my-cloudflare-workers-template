@@ -1,7 +1,12 @@
+import type { InferResponseType } from 'hono/client';
 import { HttpResponse, type RequestHandler, delay, http } from 'msw';
+import { client } from '@/react-app/shared/api';
 import { createHandler } from '@/react-app/shared/lib';
 
-export type ExampleTodo = { id: string; title: string; status: 'active' | 'completed' };
+export type ExampleTodo = InferResponseType<
+  (typeof client.api)['example-todo']['$get'],
+  200
+>[number];
 
 export const exampleTodoFixtures: ExampleTodo[] = [
   { id: 'todo-1', title: 'Storybook を導入する', status: 'active' },
