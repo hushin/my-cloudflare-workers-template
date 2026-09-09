@@ -10,7 +10,7 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 
 ## 作業のルール
 
-- パッケージマネージャは **pnpm**（npm ではない）。ツールは mise 管理（Node 24 / pnpm 11）
+- パッケージマネージャは **pnpm**（npm ではない）。ツールは mise 管理（Node 24 / pnpm 12）
 - **変更が一区切りしたら `pnpm check` と `pnpm test` を通す**（oxlint が型チェックも行うので、これで型エラーまで拾える）
 - `worker-configuration.d.ts` は `pnpm cf-typegen` の生成物（手編集禁止）
 - lint / format は lefthook が pre-commit で自動実行するので、整形のために手を入れない
