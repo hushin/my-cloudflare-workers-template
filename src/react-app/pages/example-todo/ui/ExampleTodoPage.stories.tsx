@@ -142,13 +142,13 @@ export const ToggleStatus: Story = {
 
     // 未完了のものを完了にする
     const active = canvas.getByRole('checkbox', { name: 'Storybook を導入する' });
-    expect(active).not.toBeChecked();
+    await expect(active).not.toBeChecked();
     await userEvent.click(active);
     await waitFor(() => expect(active).toBeChecked());
 
     // 完了済みのものを未完了に戻す
     const completed = canvas.getByRole('checkbox', { name: 'MSW でデータをモックする' });
-    expect(completed).toBeChecked();
+    await expect(completed).toBeChecked();
     await userEvent.click(completed);
     await waitFor(() => expect(completed).not.toBeChecked());
   },
