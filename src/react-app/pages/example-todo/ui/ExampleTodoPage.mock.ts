@@ -75,6 +75,23 @@ const errorHandlers = [
   http.get('/api/example-todo', () => new HttpResponse(null, { status: 500 })),
 ];
 
+/**
+ * GET が指定回数だけ失敗し、その後は成功するケース（再試行ボタンの確認用）。
+ * story の `beforeEach` から呼び、実行ごとに新しいハンドラを作る。
+ */
+export function createErrorThenSuccessHandlers(failures = 1): RequestHandler[] {
+  let remaining = failures;
+  return [
+    http.get('/api/example-todo', () => {
+      if (remaining > 0) {
+        remaining -= 1;
+        return new HttpResponse(null, { status: 500 });
+      }
+      return HttpResponse.json([...todos.values()]);
+    }),
+  ];
+}
+
 /** story から使うハンドラ一式 */
 export const exampleTodoHandlers = {
   success: successHandlers,
