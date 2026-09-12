@@ -18,8 +18,8 @@ export const SignedOut: Story = {
   },
   play: async ({ canvas }) => {
     await expect(canvas.getByRole('link', { name: 'My App' })).toBeVisible();
-    await expect(canvas.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
-    await expect(canvas.getByRole('link', { name: 'Todos' })).toHaveAttribute(
+    await expect(canvas.getByRole('link', { name: 'ホーム' })).toHaveAttribute('href', '/');
+    await expect(canvas.getByRole('link', { name: 'Todo' })).toHaveAttribute(
       'href',
       '/example-todo',
     );
