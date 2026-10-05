@@ -67,7 +67,7 @@
     "playwright": "^1.62.1",
     "steiger": "^0.6.0",
     "storybook": "^10.5.10",
-    "tailwind-merge": "^3.6.0",
+    "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.3",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.9.3",
