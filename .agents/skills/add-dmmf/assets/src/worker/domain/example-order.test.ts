@@ -26,6 +26,13 @@ const line = (code = codeA, quantity = 2) => ({
   quantity: Quantity(quantity)._unsafeUnwrap(),
 });
 
+const product = (stock: number): Product => ({
+  code: codeA,
+  name: 'Widget A',
+  unitPrice: Money(1200)._unsafeUnwrap(),
+  stock: StockCount(stock)._unsafeUnwrap(),
+});
+
 describe('値オブジェクト', () => {
   it('ProductCode は英数と - のみ', () => {
     expect(ProductCode('WIDGET-A').isOk()).toBe(true);
@@ -97,13 +104,6 @@ describe('値付けと確定', () => {
 });
 
 describe('hasEnoughStock', () => {
-  const product = (stock: number): Product => ({
-    code: codeA,
-    name: 'Widget A',
-    unitPrice: Money(1200)._unsafeUnwrap(),
-    stock: StockCount(stock)._unsafeUnwrap(),
-  });
-
   it('在庫が数量以上なら true（同数はちょうど足りる）', () => {
     expect(hasEnoughStock(product(2), line(codeA, 2).quantity)).toBe(true);
     expect(hasEnoughStock(product(1), line(codeA, 2).quantity)).toBe(false);
