@@ -7,8 +7,8 @@
  *   route 定義の zod スキーマと c.json() から導出される
  */
 import type { HonoBase } from 'hono/hono-base';
-import { http, HttpResponse } from 'msw';
-import type { DefaultBodyType, JsonBodyType, StrictRequest } from 'msw';
+import { http, HttpResponse, type StrictRequest } from 'msw/http';
+import type { DefaultBodyType, JsonBodyType } from 'msw';
 import type { AppType } from '@/worker';
 
 type Endpoint = {

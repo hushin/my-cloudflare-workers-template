@@ -20,7 +20,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "lint:deps": "depcruise src",
-    "deps:graph": "depcruise src --output-type dot"
+    "deps:graph": "depcruise src --output-type dot",
+    "postinstall": "msw init"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -59,7 +60,7 @@
     "dependency-cruiser": "^18.4.0",
     "lucide-react": "^1.49.0",
     "mockdate": "^3.0.5",
-    "msw": "^2.15.0",
+    "msw": "^3.0.2",
     "msw-storybook-addon": "^3.0.3",
     "oxfmt": "^0.70.0",
     "oxlint": "^1.85.0",
