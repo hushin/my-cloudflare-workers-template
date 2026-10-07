@@ -12,6 +12,8 @@ const config: StorybookConfig = {
     'msw-storybook-addon',
   ],
   framework: '@storybook/tanstack-react',
+  // staticDirs の public には pnpm postinstall（msw init）が
+  // mockServiceWorker.js を生成する（gitignore 対象）。
   staticDirs: ['../public'],
   // root の vite.config.ts の tailwindcss() だけでは vitest時に
   // 反映されないため、ここでも明示的に追加する。

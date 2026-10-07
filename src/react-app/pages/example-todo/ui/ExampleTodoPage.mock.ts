@@ -1,5 +1,7 @@
 import type { InferResponseType } from 'hono/client';
-import { HttpResponse, type RequestHandler, delay, http } from 'msw';
+import { HttpResponse, http } from 'msw/http';
+import type { RequestHandler } from 'msw';
+import { delay } from 'msw/utils/delay';
 import { client } from '@/react-app/shared/api';
 import { createHandler } from '@/react-app/shared/lib';
 

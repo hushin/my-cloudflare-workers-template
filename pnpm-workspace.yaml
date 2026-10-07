@@ -4,7 +4,6 @@ allowBuilds:
   esbuild: true
   workerd: true
   sharp: true
-  msw: true
 
 # Storybook の @storybook/tanstack-react フレームワークは vite の
 # optimizeDeps.include にベア指定（パスなし）で @tanstack/react-store と

@@ -26,7 +26,7 @@ const preview: Preview = {
   loaders: [
     mswLoader(async () => {
       const worker = setupWorker();
-      await worker.start({ quiet: true, onUnhandledRequest: 'bypass' });
+      await worker.start({ quiet: true, onUnhandledFrame: 'bypass' });
       return worker;
     }),
   ],
