@@ -23,7 +23,6 @@ const REF_OVERRIDE = process.argv[2];
  * skill を足したらここにも追加する（未登録の assets はエラーにする）。
  */
 const ASSET_ROOTS = [
-  { root: 'add-dmmf/assets', ref: 'example/dmmf-d1-auth' },
   { root: 'add-d1-drizzle/assets', ref: 'example/d1-auth' },
   { root: 'add-better-auth/assets', ref: 'example/d1-auth' },
 ];
