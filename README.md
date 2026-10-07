@@ -28,19 +28,17 @@
 必要なアプリでだけ add-on として追加する。手順と貼り付け用の実ファイルは
 `.agents/skills/<name>/` にまとまっているので、Claude Code に skill を適用させる。
 
-| 追加したいもの                           | skill             | 前提                    |
-| ---------------------------------------- | ----------------- | ----------------------- |
-| Cloudflare D1 + Drizzle ORM              | `add-d1-drizzle`  | なし                    |
-| Better Auth（GitHub OAuth）              | `add-better-auth` | `add-d1-drizzle` 適用済 |
-| DMMF 構成（domain / workflows / Result） | `add-dmmf`        | `add-d1-drizzle` 適用済 |
+| 追加したいもの              | skill             | 前提                    |
+| --------------------------- | ----------------- | ----------------------- |
+| Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
+| Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
 
 これらの手順が実態とズレないよう、適用しきった状態を参照実装ブランチで維持している
 （参照用。直接 merge して使うものではない）。
 
-| 参照実装ブランチ       | 適用済みの skill                     |
-| ---------------------- | ------------------------------------ |
-| `example/d1-auth`      | `add-d1-drizzle` + `add-better-auth` |
-| `example/dmmf-d1-auth` | 上記 + `add-dmmf`                    |
+| 参照実装ブランチ  | 適用済みの skill                     |
+| ----------------- | ------------------------------------ |
+| `example/d1-auth` | `add-d1-drizzle` + `add-better-auth` |
 
 main を更新したら各ブランチを rebase して `pnpm check && pnpm test` を通し、
 `pnpm skills:check` で `assets/` とのズレが無いことを確認する。

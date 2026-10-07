@@ -67,8 +67,8 @@ export default {
     // `import type` も依存として数える（数えないとグラフから消え、type-only の判定ができない）
     tsPreCompilationDeps: true,
     // node_modules は「依存として数えるが中は辿らない」。includeOnly: '^src' にすると
-    // npm への依存がグラフから落ち、「この層は特定のライブラリに依存しない」系のルールが
-    // 素通りする（add-dmmf の domain-must-stay-pure がそれに当たる）
+    // npm への依存がグラフから落ち、「この層は特定のライブラリに依存しない」系のルールを
+    // 足したときに素通りしてしまう
     doNotFollow: { path: 'node_modules' },
     // 自動生成物と型定義だけのファイルは対象外
     exclude: { path: '(routeTree\\.gen\\.ts|worker-configuration\\.d\\.ts)$' },
