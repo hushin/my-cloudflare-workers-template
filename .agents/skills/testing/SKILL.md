@@ -1,6 +1,6 @@
 ---
 name: testing
-description: Use when writing or modifying vitest tests for Cloudflare Workers + Hono routes. Covers @cloudflare/vitest-pool-workers setup, app.request() pattern, env from cloudflare:test, zod response validation, module state reset for test isolation, and tsconfig type setup. Trigger when the user asks to write/add tests, add testing, or mentions vitest/example-todo.test.ts patterns.
+description: Use when writing or modifying vitest tests for Cloudflare Workers + Hono routes. Covers @cloudflare/vitest-plugin setup, app.request() pattern, env from cloudflare:test, zod response validation, module state reset for test isolation, and tsconfig type setup. Trigger when the user asks to write/add tests, add testing, or mentions vitest/example-todo.test.ts patterns.
 ---
 
 # Testing Skill — Cloudflare Workers + Hono + Vitest
@@ -21,10 +21,10 @@ tsconfig.worker.json             # vitest/globals, cloudflare:test の型を追�
 
 ## vitest.config.ts（雛形）
 
-テストはすべて `@cloudflare/vitest-pool-workers` の `cloudflareTest` プラグイン経由で Workers runtime 上で実行される。`@/` エイリアス解決のため `resolve.alias` も必須。
+テストはすべて `@cloudflare/vitest-plugin` の `cloudflareTest` プラグイン経由で Workers runtime 上で実行される。`@/` エイリアス解決のため `resolve.alias` も必須。
 
 ```ts
-import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
+import { cloudflareTest } from '@cloudflare/vitest-plugin';
 import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 
@@ -135,12 +135,12 @@ setupFiles と `vitest.config.ts` 側の設定は `add-d1-drizzle` skill を参�
 ```json
 "types": [
   "vitest/globals",
-  "@cloudflare/vitest-pool-workers/types"
+  "@cloudflare/vitest-plugin/types"
 ]
 ```
 
 - `vitest/globals` → `describe` / `it` / `expect` 等のグローバル型
-- `@cloudflare/vitest-pool-workers/types` → `cloudflare:test` モジュールの型
+- `@cloudflare/vitest-plugin/types` → `cloudflare:test` モジュールの型
 
 ## 実行
 
