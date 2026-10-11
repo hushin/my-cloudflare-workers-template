@@ -174,7 +174,41 @@ pnpm wrangler secret put GITHUB_CLIENT_SECRET
 （`auth/index.ts` が型エラーになり `pnpm check` が落ちる）。`BETTER_AUTH_URL` を `vars` に置くのが
 必須なのも同じ理由（`vars` にあれば `.dev.vars` の有無に左右されない）。
 
-### 8. 確認
+### 8. vitest のモジュール解決を調整する
+
+`better-auth` → `@better-auth/core` が依存する `@opentelemetry/semantic-conventions` の ESM
+ビルド（`build/esm/index.js`）は、拡張子なしの相対 import（`export * from './trace'`）を含む。
+bundler はディレクトリの `index.js` に解決してくれるが、Workers runtime のモジュール解決は
+そうしないので、このままだと `pnpm test` が全 worker テストを
+`No such module ".../@opentelemetry/semantic-conventions/build/esm/trace"` で落とす。
+
+Vite にバンドルさせて解決させる。`vitest.config.ts` の `test` に足す。
+
+```ts
+deps: {
+  optimizer: {
+    ssr: {
+      enabled: true,
+      include: ['@opentelemetry/semantic-conventions'],
+    },
+  },
+},
+```
+
+pnpm は推移的依存を root の `node_modules` に置かないため、`pnpm-workspace.yaml` の
+`publicHoistPattern` にも追加する。無いと `Failed to resolve dependency:
+@opentelemetry/semantic-conventions` で落ちる。
+
+```yaml
+publicHoistPattern:
+  # 既存の 2 つは消さない
+  - '@opentelemetry/semantic-conventions'
+```
+
+Cloudflare の known issues（Module resolution）に載っている回避策で、参照実装
+（`example/d1-auth`）にも同じ設定が入っている。
+
+### 9. 確認
 
 ```bash
 pnpm check && pnpm test
@@ -228,3 +262,5 @@ const meta = { component: Header, loaders: [refetchSession] } satisfies Meta<typ
   `getByRole('heading')` で拾わせたいなら中に `<h1>` を置く（`SignInPage.tsx` がその形）
 - **`routeTree.gen.ts` の再生成漏れ** — route ファイルを足したら build を一度通す。
   `pnpm check` は lint が先なので、再生成前に走らせると型エラーで落ちる
+- **`pnpm test` が `No such module ".../@opentelemetry/semantic-conventions/build/esm/trace"` で
+  落ちる** — 手順 8 の `deps.optimizer` / `publicHoistPattern` の設定漏れ

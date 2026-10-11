@@ -23,7 +23,7 @@ vitest browser mode（chromium）で実行する。Worker 側のテストは別�
 ### react-app 配下の `*.test.ts` の実行環境に注意
 
 `src/react-app/**/*.test.ts` は storybook プロジェクトではなく **worker プロジェクト
-（`@cloudflare/vitest-pool-workers` / Workers runtime）** で実行される。`describe` / `it` /
+（`@cloudflare/vitest-plugin` / Workers runtime）** で実行される。`describe` / `it` /
 `expect` はグローバルで使える（`globals: true`）が、**`document` / `window` は存在しない**
 （`navigator.userAgent` は `Cloudflare-Workers`）。
 

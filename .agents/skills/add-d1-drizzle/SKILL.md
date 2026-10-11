@@ -116,7 +116,7 @@ pnpm db:migrate:local   # ローカル（.wrangler 配下の SQLite）に適用
 `vitest.config.ts` に 3 箇所足す。ファイル全体を置き換えるのではなく差分で入れる。
 
 ```ts
-import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
+import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-plugin';
 
 // 1. Node 側で migration SQL を読む（top-level await）
 const migrations = await readD1Migrations('./drizzle');
@@ -149,8 +149,8 @@ export default defineConfig({
 
 0.18 で変わった点が 2 つあるので、古いドキュメントのコピペに注意する。
 
-- `readD1Migrations` は `@cloudflare/vitest-pool-workers` の **ルート**から import する
-  （`@cloudflare/vitest-pool-workers/config` は存在しない）
+- `readD1Migrations` は `@cloudflare/vitest-plugin` の **ルート**から import する
+  （`@cloudflare/vitest-plugin/config` は存在しない）
 - `cloudflare:test` の `env` は `Cloudflare.Env` 型で、**`ProvidedEnv` は廃止された**。
   テスト専用バインディングの型は `declare module 'cloudflare:test'` ではなく
   `declare global { namespace Cloudflare { interface Env { ... } } }` で足す

@@ -6,21 +6,21 @@
 
 ## Tech Stack
 
-| カテゴリ       | 技術                                                                                          |
-| -------------- | --------------------------------------------------------------------------------------------- |
-| フロントエンド | React 19, TypeScript, shadcn/ui（base UI）, Tailwind CSS v4                                   |
-| ルーティング   | TanStack Router（file-based routing）                                                         |
-| フォーム       | TanStack Form                                                                                 |
-| データ取得     | TanStack Query                                                                                |
-| バックエンド   | Hono 4（Workers 上で動作）, zod, @hono/zod-validator                                          |
-| ビルドツール   | Vite 8, @cloudflare/vite-plugin, @tanstack/router-plugin                                      |
-| デプロイ       | Wrangler 4, Cloudflare Workers                                                                |
-| Lint / Format  | oxlint, oxfmt, steiger（FSD 構造）, dependency-cruiser（依存の向き）                          |
-| UI カタログ    | Storybook 10（@storybook/tanstack-react）, MSW                                                |
-| テスト         | Vitest, @cloudflare/vitest-pool-workers, @storybook/addon-vitest（browser mode / Playwright） |
-| Git hooks      | lefthook                                                                                      |
-| パッケージ管理 | pnpm                                                                                          |
-| バージョン管理 | mise                                                                                          |
+| カテゴリ       | 技術                                                                                    |
+| -------------- | --------------------------------------------------------------------------------------- |
+| フロントエンド | React 19, TypeScript, shadcn/ui（base UI）, Tailwind CSS v4                             |
+| ルーティング   | TanStack Router（file-based routing）                                                   |
+| フォーム       | TanStack Form                                                                           |
+| データ取得     | TanStack Query                                                                          |
+| バックエンド   | Hono 4（Workers 上で動作）, zod, @hono/zod-validator                                    |
+| ビルドツール   | Vite 8, @cloudflare/vite-plugin, @tanstack/router-plugin                                |
+| デプロイ       | Wrangler 4, Cloudflare Workers                                                          |
+| Lint / Format  | oxlint, oxfmt, steiger（FSD 構造）, dependency-cruiser（依存の向き）                    |
+| UI カタログ    | Storybook 10（@storybook/tanstack-react）, MSW                                          |
+| テスト         | Vitest, @cloudflare/vitest-plugin, @storybook/addon-vitest（browser mode / Playwright） |
+| Git hooks      | lefthook                                                                                |
+| パッケージ管理 | pnpm                                                                                    |
+| バージョン管理 | mise                                                                                    |
 
 ## オプション構成（add-on）
 
@@ -120,10 +120,10 @@ npx wrangler tail     # Workers のリアルタイムログ
 
 `pnpm test` は vitest の 2 プロジェクトをまとめて実行する。
 
-| プロジェクト | 対象                             | 実行環境                                             |
-| ------------ | -------------------------------- | ---------------------------------------------------- |
-| worker       | `src/**/*.test.ts`               | `@cloudflare/vitest-pool-workers`（Workers runtime） |
-| storybook    | `src/react-app/**/*.stories.tsx` | vitest browser mode（Playwright / chromium）         |
+| プロジェクト | 対象                             | 実行環境                                       |
+| ------------ | -------------------------------- | ---------------------------------------------- |
+| worker       | `src/**/*.test.ts`               | `@cloudflare/vitest-plugin`（Workers runtime） |
+| storybook    | `src/react-app/**/*.stories.tsx` | vitest browser mode（Playwright / chromium）   |
 
 書き分けの方針:
 
