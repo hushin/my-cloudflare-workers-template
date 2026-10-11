@@ -4,13 +4,3 @@ allowBuilds:
   esbuild: true
   workerd: true
   sharp: true
-
-# Storybook の @storybook/tanstack-react フレームワークは vite の
-# optimizeDeps.include にベア指定（パスなし）で @tanstack/react-store と
-# use-sync-external-store/shim/with-selector を登録するが、pnpm の厳格な
-# node_modules 構造ではプロジェクトルートから解決できず、初回起動時に
-# Vite の依存最適化が一度失敗してリロードが走り vitest がフレーキーになる。
-# ルートの node_modules に公開ホイストしてトップレベルから解決可能にする。
-publicHoistPattern:
-  - '@tanstack/react-store'
-  - 'use-sync-external-store'

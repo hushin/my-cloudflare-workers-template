@@ -137,4 +137,3 @@ npx wrangler tail     # Workers のリアルタイムログ
 - **Hono route** — `src/worker/**/*.test.ts`
 
 書き方の指針は `.agents/skills/storybook-testing/SKILL.md` にまとめてある。
-初回実行がフレーキーになる既知の問題については `docs/storybook-vitest-first-run-flake.md` を参照。

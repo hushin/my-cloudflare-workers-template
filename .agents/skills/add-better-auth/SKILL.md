@@ -201,7 +201,6 @@ pnpm は推移的依存を root の `node_modules` に置かないため、`pnpm
 
 ```yaml
 publicHoistPattern:
-  # 既存の 2 つは消さない
   - '@opentelemetry/semantic-conventions'
 ```
 
