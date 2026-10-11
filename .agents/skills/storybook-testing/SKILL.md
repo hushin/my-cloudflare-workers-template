@@ -35,7 +35,7 @@ vitest browser mode（chromium）で実行する。Worker 側のテストは別�
 ```
 .storybook/main.ts        # framework: @storybook/tanstack-react, addons
 .storybook/preview.tsx    # QueryClientProvider decorator, mswLoader, a11y
-vitest.config.ts          # storybook プロジェクト（browser mode, fileParallelism: false）
+vitest.config.ts          # storybook プロジェクト（browser mode）
 src/react-app/**/xxx.tsx          # 対象
 src/react-app/**/xxx.stories.tsx  # story（隣に置く）
 src/react-app/**/xxx.mock.ts      # MSW ハンドラ（隣に置く）
@@ -251,10 +251,6 @@ export const Delete: Story = {
   story ごとに新規作成される（キャッシュが漏れない）
 - **Router のラップは不要**。`@storybook/tanstack-react` が memory router で自動的にラップする。
   自前の RouterProvider decorator を足さない
-- **初回実行のフレーキー**: コールドキャッシュ時に落ちることがある既知の上流問題。
-  対策（`fileParallelism: false`、`optimizeDeps.include`）は入っている。再発時は
-  `docs/storybook-vitest-first-run-flake.md` を読む。**失敗は確率的なので、1回通っただけで
-  直った判断をしない**
 - **a11y addon は `test: 'todo'`**（違反を表示するが CI は落とさない）。CI で落としたくなったら
   `.storybook/preview.tsx` を `'error'` にする
 - Tailwind は `.storybook/main.ts` の `viteFinal` でも明示的に追加している（vitest 実行時に

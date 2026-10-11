@@ -22,18 +22,6 @@ const config: StorybookConfig = {
     // 手動 setupWorker()（preview.tsx）を使うため worker-only モードでよい。
     // これにより postinstall（msw init）と public/ 配下の生成物が不要になる。
     viteConfig.plugins.push(msw({ mode: 'worker-only' }));
-    // コールドキャッシュ時に react/jsx-dev-runtime が事前最適化されておらず、
-    // テスト実行中に発見されて Vite がリロード→初回のみ vitest が落ちる既知の問題
-    // (storybookjs/storybook#32049) への対処。
-    viteConfig.optimizeDeps ??= {};
-    viteConfig.optimizeDeps.include = [
-      ...(viteConfig.optimizeDeps.include ?? []),
-      'react/jsx-dev-runtime',
-      'react/jsx-runtime',
-      '@tanstack/react-form',
-      'hono/client',
-      'zod',
-    ];
     return viteConfig;
   },
 };

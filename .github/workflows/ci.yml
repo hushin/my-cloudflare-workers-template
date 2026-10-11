@@ -53,18 +53,5 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --only-shell chromium
 
-      # Storybook の vitest browser mode はコールドキャッシュの初回だけ落ちることがある
-      # （docs/storybook-vitest-first-run-flake.md）。Vite の依存最適化結果を持ち越して
-      # 実行を安定させる。
-      - name: Cache Vite / Storybook deps
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            node_modules/.vite
-            node_modules/.cache/storybook
-          key: vite-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'vite.config.ts', 'vitest.config.ts', '.storybook/**') }}
-          restore-keys: |
-            vite-cache-${{ runner.os }}-
-
       - name: Run tests
         run: pnpm test
