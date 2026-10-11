@@ -14,3 +14,4 @@ allowBuilds:
 publicHoistPattern:
   - '@tanstack/react-store'
   - 'use-sync-external-store'
+  - '@opentelemetry/semantic-conventions'

@@ -26,6 +26,19 @@ export default defineConfig({
     },
   },
   test: {
+    // better-auth → @better-auth/core が使う @opentelemetry/semantic-conventions の
+    // ESM ビルドは拡張子なしの相対 import（./trace）を含み、workerd のモダンな
+    // モジュール解決では引けない。Vite にバンドルさせて解決させる。
+    // pnpm の厳格な node_modules では root から解決できないため
+    // pnpm-workspace.yaml の publicHoistPattern にも追加している。
+    deps: {
+      optimizer: {
+        ssr: {
+          enabled: true,
+          include: ['@opentelemetry/semantic-conventions'],
+        },
+      },
+    },
     projects: [
       {
         extends: true,
