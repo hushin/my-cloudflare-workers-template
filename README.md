@@ -4,6 +4,13 @@
 
 [このアプリの概要説明を書く]
 
+## テンプレートから引き継いだ設定
+
+以下はテンプレート本体の運用向けの設定です。このアプリで不要なら削除してかまいません。
+
+- `.github/dependabot.yml` … 依存パッケージの週次更新
+- `.github/workflows/dependabot-auto-merge.yml` … Dependabot の minor / patch PR の自動マージ
+
 ## Tech Stack
 
 | カテゴリ       | 技術                                                                                    |

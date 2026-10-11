@@ -93,6 +93,9 @@ src/
 
 - `pnpm skills:check` で `assets/` と参照実装ブランチのズレを検出できる（skill を編集したら実行する）
 
+Dependabot（`.github/dependabot.yml`）と自動マージ（`.github/workflows/dependabot-auto-merge.yml`）は
+テンプレート本体のメンテ用に既定で含まれている。アプリで不要なら削除してよい。
+
 ## テストの書き分け
 
 | 対象                                            | 書き方                    |
