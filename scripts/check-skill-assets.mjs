@@ -63,13 +63,21 @@ function readFromRef(ref, path) {
   }
 }
 
-function assertRefExists(ref) {
-  try {
-    execFileSync('git', ['rev-parse', '--verify', `${ref}^{commit}`], { stdio: 'ignore' });
-  } catch {
-    console.error(`参照実装ブランチ '${ref}' が見つかりません。`);
-    process.exit(1);
+/**
+ * ref を git が解決できる名前に変換する。fresh clone では参照実装ブランチが
+ * remote-tracking ref としてしか無いので、origin/ 経由でも探す。
+ * 解決できなければ null。
+ */
+function findRef(ref) {
+  for (const candidate of [ref, `origin/${ref}`, `refs/remotes/origin/${ref}`]) {
+    try {
+      execFileSync('git', ['rev-parse', '--verify', `${candidate}^{commit}`], { stdio: 'ignore' });
+      return candidate;
+    } catch {
+      // 次の候補へ
+    }
   }
+  return null;
 }
 
 // 登録漏れの検出: 実在する assets ディレクトリがすべて ASSET_ROOTS に載っているか
@@ -91,8 +99,12 @@ let matched = 0;
 const problems = [];
 
 for (const { root, ref: declaredRef } of ASSET_ROOTS) {
-  const ref = REF_OVERRIDE ?? declaredRef;
-  assertRefExists(ref);
+  const ref = findRef(REF_OVERRIDE ?? declaredRef);
+  if (ref === null) {
+    console.error(`参照実装ブランチ '${REF_OVERRIDE ?? declaredRef}' が見つかりません。`);
+    console.error('git fetch origin で取得するか、ref を直接渡してください。');
+    process.exit(1);
+  }
 
   const rootDir = join(SKILLS_DIR, root);
   for (const assetPath of walk(rootDir)) {
