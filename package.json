@@ -20,8 +20,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "lint:deps": "depcruise src",
-    "deps:graph": "depcruise src --output-type dot",
-    "postinstall": "msw init"
+    "deps:graph": "depcruise src --output-type dot"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -76,10 +75,5 @@
     "vitest": "^5.0.3",
     "wrangler": "4.142.0"
   },
-  "packageManager": "pnpm@12.3.4",
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
-  }
+  "packageManager": "pnpm@12.3.4"
 }
