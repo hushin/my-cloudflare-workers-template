@@ -119,6 +119,7 @@ route ファイルに `Route` 以外の export を増やさない（増やすと
 4. `src/react-app/routes/<slice-name>.tsx` を作成し、`@/react-app/pages/<slice-name>` から component を import して `Route` を定義するだけにする
 5. story / MSW モックが必要なら `pages/<slice-name>/ui/` に colocation する
 6. `pnpm lint`（内部で `steiger ./src/react-app` を実行）で構造違反がないか確認する
+7. `routeTree.gen.ts` を再生成する（route を足したら一度 build する。自動生成だがコミット対象で、手編集はしない）
 
 ## steiger（FSD 構造 lint）
 

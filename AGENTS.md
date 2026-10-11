@@ -120,7 +120,7 @@ UI のために `render()` する専用テストファイルは作らず story �
 | Hono RPC の型付け（`InferResponseType` / `zValidator`） | `docs/hono-rpc-types.md`, `writing-hono-rpc-routes` skill                   |
 | Worker のテスト                                         | `testing` skill                                                             |
 | story / interaction test / MSW                          | `storybook-testing` skill                                                   |
-| UI コンポーネント追加                                   | `shadcn-ui` skill, `docs/shadcn-ui-setup.md`                                |
+| UI コンポーネント追加                                   | `shadcn-ui` skill                                                           |
 | Cloudflare 全般                                         | `cloudflare`, `workers-best-practices`, `wrangler`, `durable-objects` skill |
 | react-app のレイヤー構成（Feature-Sliced Design）       | `fsd` skill                                                                 |
 | D1 + Drizzle ORM の追加                                 | `add-d1-drizzle` skill                                                      |
