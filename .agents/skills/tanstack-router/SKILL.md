@@ -10,7 +10,8 @@ TanStack Router の一般的な API の説明（Link / loader / beforeLoad / cod
 ## ルートと画面の役割
 
 - `src/react-app/routes/*.tsx` は薄いルート定義。`validateSearch` / `loader` / `beforeLoad` はここ、画面本体は `pages/<slice>/ui/`（構造は `fsd` skill）
-- **pages 側から `Route` を import しない**。`autoCodeSplitting` の chunk にルート設定を引き込むので `getRouteApi('/path')` を使う（既存 pages はまだ route フック未使用のため、前例が無いまま `Route.useSearch()` と書くとこの規約を破りやすい）
+- **pages 側から `Route` を import しない**。分割チャンクからルート定義（critical chunk）を参照し返す形になるため、公式ガイドは `getRouteApi('/path')` を指示している（`useSearch({ from: '/path' })` でもよい）。既存 pages はまだ route フック未使用なので、前例が無いまま `Route.useSearch()` と書くとこの規約を破りやすい
+- `from` に渡すのは URL ではなく **route id**。`_` でエスケープしたファイルは id にも残る（`posts_.$postId.tsx` の id は `/posts_/$postId`、URL は `/posts/$postId`）
 - `routeTree.gen.ts` はコミット対象の生成物。手で編集しない（パスはファイル名から決まる）
 - 型は `app/bootstrap/router.ts` の `declare module` の `Register` が効かせている。この宣言を動かさない
 - `vite.config.ts` の `routeFileIgnorePattern` で `*.stories.tsx` / `*.mock.ts` はルート扱いから除外済み
@@ -26,6 +27,7 @@ import { PostsPage, postsQuery } from '@/react-app/pages/posts';
 export const Route = createFileRoute('/posts')({
   // zod v4 はスキーマをそのまま渡せる（@tanstack/zod-adapter は不要）。
   // search params は JSON-first なので ?page=2 は number で来る（z.coerce は不要）。
+  // JSON として読めない値は文字列のまま届く（?page=abc は 'abc'）。壊れた URL は .catch() で落とす
   validateSearch: z.object({
     page: z.number().int().min(1).catch(1), // 壊れた URL は既定値に落とす
   }),
@@ -61,7 +63,7 @@ export function PostsPage() {
 
 この形を全部の画面で使う必要はない。判断の軸は「最初の描画にデータが要るか」。
 
-loader に寄せる: URL の param / search で内容が決まる一覧・詳細。遷移前にキャッシュを温められるのでローディングのちらつきが消え、hover preload にも乗る。
+loader に寄せる: URL の param / search で内容が決まる一覧・詳細。遷移が始まった時点でキャッシュが温まりローディングのちらつきが消える。`defaultPreload: 'intent'`（または `Link` の `preload="intent"`。既定は `false`）を書けば hover でも先読みする。
 
 component 側の `useQuery` のままでよい: 操作のあとに初めて取るデータ（「もっと見る」、検索ボタン、タブを開いたとき）、最初の描画に要らない補助データ（`isPending` で骨組みを出せば済む）、`ExampleTodoPage` のような画面完結の CRUD。
 
@@ -71,6 +73,7 @@ component 側の `useQuery` のままでよい: 操作のあとに初めて取�
 - `validateSearch` / `loaderDeps` / `loader` は main bundle に残る（分割されない）。複雑な処理や重い import を loader に持ち込まない
 - 同じデータを loader と component の両方で取らない（`queryOptions` を共有して、片方はキャッシュを温める、片方は購読する）
 - 主要データを loader、補助データを `useQuery` という混在は普通の選択
+- 「もっと見る」形式の cursor ページングは `useInfiniteQuery` になる。loader で温めるには `queryClient.infiniteQuery({ ...options })` が要る（plain な `query()` で温めた key を infinite の observer に渡すと壊れる。`prefetchInfiniteQuery` は非推奨）
 
 ## loader / Query を使うときの配線
 
@@ -141,8 +144,17 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
 
 - 戻り先を `search` に載せるときは、受ける側（`/sign-in` の `validateSearch`）で `//` 始まりや非文字列を弾く
 - `beforeLoad` を try/catch で囲むと redirect が握り潰される。`isRedirect(e)` で再スローする
-- pathless レイアウトには**子ルートが最低 1 つ**要る。子が無いと routeTree の生成がパス重複で失敗し、ビルドが exit 0 のまま `routeTree.gen.ts` が更新されない（気づきにくい）
+- pathless レイアウトに子を書かないと、そのルートが leaf として `/` を占め、`index.tsx` とパスが重複して routeTree の生成が失敗する
+- `beforeLoad` はナビゲーションごとに全マッチで再実行される（再利用されるのは loader）。ここで `authClient.getSession()` のように HTTP を await すると遷移のたびに往復が入る。session は context（live 値）や Query のキャッシュに載せ、`beforeLoad` は既にある値を読む
+- context の値を差し替えただけでは matches は再評価されない。session の user が変わったときは `router.invalidate()` する
 - クライアント側のガードは UI の話。同じ条件を Hono route 側でも認可する（RPC を直接叩けば通ってしまう）
+
+## 検証
+
+- route を足したら、型チェックの前に一度 `pnpm exec vite build`（または `pnpm dev`）で `routeTree.gen.ts` を再生成する。生成前に型チェックすると「そんなルートは無い」で落ちる
+- 生成が失敗しても `vite build` は exit 0 で終わり、`routeTree.gen.ts` が古いまま残る（パス重複などは console にエラーが出るだけ）。route を足したら生成物が実際に更新されたかを見る
+- `?tsr-split=component` は自動分割の印。dev のモジュール URL に付くのは正常
+- story のルーターは既定だと合成ルート 1 本で、実ルートのネスト・遷移・search の反映・loader の発火は検出できない（`@storybook/tanstack-react`）。`parameters.tanstack.router.route` に `Route` を渡せば実ツリーが複製され、そこまでは検証できる。最終確認は `pnpm dev` で触る
 
 ## その他の注意
 

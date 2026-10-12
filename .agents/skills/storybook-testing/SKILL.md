@@ -43,9 +43,7 @@ src/react-app/**/xxx.mock.ts      # MSW ハンドラ（隣に置く）
 
 - story と mock は対象ファイルの隣に colocation する。`vite.config.ts` の
   `routeFileIgnorePattern` で `*.stories.tsx` / `*.mock.ts` はルート生成から除外済み。
-- route の story を書くときは、`createFileRoute` に渡す component を **named export** して
-  それを import する（`export function ExampleTodoPage()` のように）。Route オブジェクト自体は
-  story にしない。
+- story の対象は `pages/<slice>/ui/` の画面 component（named export されている方を import する。例: `export function ExampleTodoPage()`）。`routes/*.tsx` のラッパーや `Route` オブジェクトは story にしない（route ファイルから component を export すると code splitting が効かなくなる。`tanstack-router` skill）
 
 ```bash
 pnpm test          # worker + storybook の両プロジェクトを実行
