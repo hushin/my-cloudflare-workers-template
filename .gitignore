@@ -200,3 +200,14 @@ dist
 
 *storybook.log
 storybook-static
+
+### Agent skills ###
+# 外部スキル（cloudflare/skills, honojs/skills など）の実体は skills-lock.json から復元する生成物なので追跡しない。
+# リポジトリが保守するスキルだけを下の許可リストで残す（自前のスキルを足したら `!` の行も足す）。
+/.agents/skills/*
+!/.agents/skills/add-better-auth/
+!/.agents/skills/add-d1-drizzle/
+!/.agents/skills/fsd/
+!/.agents/skills/shadcn-ui/
+!/.agents/skills/storybook-testing/
+!/.agents/skills/testing/

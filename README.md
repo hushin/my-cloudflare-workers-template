@@ -10,6 +10,9 @@
 
 - `.github/dependabot.yml` … 依存パッケージの週次更新
 - `.github/workflows/dependabot-auto-merge.yml` … Dependabot の minor / patch PR の自動マージ
+- `.agents/skills/` の外部スキル（`cloudflare/skills`, `honojs/skills`）… `skills-lock.json` の内容を
+  `pnpm skills experimental_install` で復元する（`mise run setup` に含まれる）。不要なら `skills-lock.json` と
+  `skills` devDependency、`.gitignore` の該当行を削除する
 
 ## Tech Stack
 
@@ -55,7 +58,7 @@ main を更新したら各ブランチを rebase して `pnpm check && pnpm test
 ```
 .
 ├── .storybook/            # Storybook 設定（main.ts / preview.tsx）
-├── .agents/skills/        # プロジェクト固有の skill（.claude/skills はここへの symlink）
+├── .agents/skills/        # skill（外部スキルは skills-lock.json から復元。.claude/skills はここへの symlink）
 ├── src/
 │   ├── worker/            # Hono Worker（API routes）
 │   │   ├── index.ts       # Workers entrypoint（wrangler.json の main）

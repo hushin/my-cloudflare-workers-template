@@ -4,5 +4,10 @@ node = "24"
 pnpm = "12"
 
 [tasks.setup]
-description = "Install dependencies and set up git hooks"
-run = ["pnpm install && pnpm exec playwright install chromium --with-deps", "lefthook install"]
+description = "Install dependencies, restore project skills, and set up git hooks"
+run = [
+  "pnpm install",
+  "pnpm skills experimental_install",
+  "pnpm exec playwright install chromium --with-deps",
+  "lefthook install",
+]

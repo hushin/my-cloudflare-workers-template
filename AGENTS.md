@@ -30,6 +30,7 @@ pnpm build            # tsc -b + vite build
 pnpm storybook        # Storybook UI（localhost:6006）
 pnpm build && pnpm deploy   # デプロイ
 pnpm cf-typegen       # worker-configuration.d.ts 再生成
+pnpm skills experimental_install # 外部スキル（skills-lock.json）を .agents/skills/ に復元
 pnpm skills:check     # add-on skill の assets と参照実装ブランチのズレを検出
 ```
 
@@ -95,6 +96,25 @@ src/
 
 Dependabot（`.github/dependabot.yml`）と自動マージ（`.github/workflows/dependabot-auto-merge.yml`）は
 テンプレート本体のメンテ用に既定で含まれている。アプリで不要なら削除してよい。
+
+## 外部スキル（`.agents/skills/` の復元物）
+
+テンプレートが保守する skill（`add-d1-drizzle` など）はコミットするが、外部リポジトリ由来の skill
+（`cloudflare/skills`, `honojs/skills`）は **`skills-lock.json` だけをコミット**し、実体は `.agents/skills/` に
+復元して gitignore する。復元する CLI も devDependency（`skills`）で固定している。
+
+| やりたいこと                        | コマンド                                                                                       |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 復元（`mise run setup` に含まれる） | `pnpm skills experimental_install`                                                             |
+| 追加 / 削除                         | `pnpm skills add cloudflare/skills --skill wrangler -a pi -y` / `pnpm skills remove <name> -y` |
+| 上流の更新を取り込む                | `pnpm skills update -p`                                                                        |
+
+- `-a pi` で指定する canonical な `.agents/skills/` だけに入れる（`.claude/skills` はここへの symlink なので
+  Claude Code からも見える）。付けないと検出されたエージェントごとのディレクトリにも入る
+- lock は commit を固定せず default branch の先端を取り込む。上流が変わると `computedHash` がずれて
+  `skills-lock.json` に差分が出るので、復元後は差分を確認して commit する
+- `.gitignore` は `.agents/skills/*` を無視して自前 skill だけを `!` で許可している。
+  自前 skill を足したら `!/.agents/skills/<name>/` も足す（足し忘れは `git add` が ignored で失敗するので気づける）
 
 ## テストの書き分け
 
