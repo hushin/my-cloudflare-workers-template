@@ -2,7 +2,6 @@
 
 <!-- TODO: アプリのテンプレートなので書き換える -->
 
-個人用の Cloudflare Workers Web アプリのテンプレートリポジトリ。
 [このアプリの概要説明]
 
 Cloudflare Workers / Hono 4 / React 19 + Vite 8 / TanStack Router・Form・Query /
@@ -10,138 +9,79 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 
 ## 作業のルール
 
-- パッケージマネージャは **pnpm**（npm ではない）。ツールは mise 管理（Node 24 / pnpm 12）
-- **変更が一区切りしたら `pnpm check` と `pnpm test` を通す**（oxlint が型チェックも行うので、これで型エラーまで拾える）
-- `worker-configuration.d.ts` は `pnpm cf-typegen` の生成物（手編集禁止）
-- lint / format は lefthook が pre-commit で自動実行するので、整形のために手を入れない
+- パッケージマネージャは pnpm（mise で Node 24 / pnpm 12 を固定）
+- 変更が一区切りしたら `pnpm check` と `pnpm test` を通す。型チェックは oxlint が兼ねるので `pnpm check` で型エラーまで見える
+- `worker-configuration.d.ts` は `pnpm cf-typegen` の生成物。手で編集しない
 - コミットメッセージは Conventional Commits
-- シークレットは `.dev.vars` / `wrangler secret put`（コミット禁止）。公開設定は `wrangler.json` の `vars`
+- シークレットは `.dev.vars` / `wrangler secret put`（コミットしない）。公開してよい設定は `wrangler.json` の `vars`
+- 整形は oxfmt、lint の自動修正は `pnpm lint:fix` が行う（pre-commit の lefthook も同じものを走らせる）
 
 ## コマンド
 
 ```bash
-pnpm dev              # Vite dev server（localhost:5173）
-pnpm check            # lint（型チェック込み）+ fmt:check + vite build + deploy --dry-run
-pnpm test             # vitest run（worker + storybook）
-pnpm lint             # oxlint（型エラーも出る）+ steiger（FSD の構造）+ depcruise（依存の向き）
-pnpm lint:deps        # dependency-cruiser 単体（レイヤーをまたぐ import の向きだけを検査）
-pnpm deps:graph       # 依存グラフを dot 形式で出力（Graphviz に流して図にする）
-pnpm build            # tsc -b + vite build
-pnpm storybook        # Storybook UI（localhost:6006）
-pnpm build && pnpm deploy   # デプロイ
-pnpm cf-typegen       # worker-configuration.d.ts 再生成
-pnpm skills experimental_install # 外部スキル（skills-lock.json）を .agents/skills/ に復元
-pnpm skills:check     # add-on skill の assets と参照実装ブランチのズレを検出
+pnpm check       # 検証: lint（型チェック込み）+ fmt:check + vite build + deploy --dry-run
+pnpm test        # 検証: vitest run（worker + storybook）
+pnpm lint        # lint だけ（oxlint + steiger + dependency-cruiser）
+pnpm fmt         # 整形（oxfmt）。lint の自動修正は pnpm lint:fix
+pnpm dev         # 開発サーバー（localhost:5173）
+pnpm storybook   # Storybook（localhost:6006）
+pnpm cf-typegen  # worker-configuration.d.ts を再生成
 ```
 
 ## 構造
 
 ```
 src/
-├── worker/            # Hono（Workers entrypoint は index.ts、wrangler.json の main）
-│   ├── routes/        # 機能ごとの route。index.ts に .route() でマウント
-│   └── repositories/  # データアクセス
-├── react-app/         # React SPA（build 出力 ./dist/client、SPA mode）Feature-Sliced Design 採用
-│   ├── app/           # FSD app レイヤー：bootstrap（provider・router 初期化）、layouts（RootLayout, Header）
-│   ├── routes/        # TanStack Router file-based routes（route 定義のみの薄いファイル。app/pages を参照）
-│   ├── pages/         # FSD pages レイヤー（画面本体、URL セグメント単位のスライス）
-│   └── shared/        # FSD shared レイヤー：ui（shadcn/ui）、lib（cn, msw-hono）、api（hc クライアント）
-└── shared/            # worker/react-app 共通コード（FSD の shared レイヤーとは別概念。混同注意）
-    └── schemas/       # zod スキーマ（zValidator と併用、react-app からもそのまま import）
+├── worker/            # Hono。entrypoint は index.ts（wrangler.json の main）
+│   └── routes/        # 機能ごとの route。index.ts に .route() でマウント
+├── react-app/         # React SPA（Feature-Sliced Design。構造は steiger が検査）
+│   ├── app/           # provider / router の初期化、layouts
+│   ├── routes/        # TanStack Router の file-based route（薄い定義だけ）
+│   ├── pages/         # 画面本体（URL セグメント単位のスライス）
+│   └── shared/        # ui（shadcn/ui）/ lib / api（hc クライアント）
+└── shared/            # worker と react-app の共通コード（zod スキーマなど）
 ```
 
-- 新規 API route → `src/worker/routes/` に追加し `src/worker/index.ts` に `.route()` でマウント
-- 新規ページ → `src/react-app/pages/<page-name>/ui/` に画面本体を実装し、`src/react-app/routes/` に薄い route 定義ファイルを追加して参照する（詳細は `fsd` skill）
-- `pages/<slice>/` の構成は FSD に従い、`steiger` (`pnpm lint` に含む) が構造違反を検出する
-- story / MSW モックは画面本体ファイルの隣（`pages/<slice>/ui/`）に `*.stories.tsx` / `*.mock.ts`
-- UI キット・共通ユーティリティ・API クライアントは `src/react-app/shared/` に置き、`index.ts`（public API）経由で import する
-- サーバ・クライアント共通のロジック（zod スキーマ、型、定数など）は `src/shared/` に置く（react-app の FSD shared レイヤーとは別物）
+- 新規 API route → `src/worker/routes/` に追加し、`src/worker/index.ts` に `.route()` でマウントする
+- 新規ページ → `src/react-app/pages/<name>/ui/` に本体を書いて `src/react-app/routes/` に薄い route 定義を足す（詳細は `fsd` skill）
+- `src/shared/` と `src/react-app/shared/` は別物。前者は worker と react-app が共有するスキーマ・型、後者は FSD の shared レイヤー
 
-### レイヤー規約（`.dependency-cruiser.mjs` で機械的に検査）
+## 依存の向き
 
-| 禁止する向き                         | 理由                                                                                              |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `src/shared` → `src/worker`          | shared は両方から読まれる土台。DTO と定数だけに保つ                                               |
-| `src/shared` → `src/react-app`       | shared は UI を知らない                                                                           |
-| `src/worker` → `src/react-app`       | Workers のバンドルに React が入る                                                                 |
-| `src/react-app` → `src/worker`       | **`import type` だけ許可**（Hono RPC の型）。値を import すると worker の実装がクライアントに入る |
-| `src/worker/repositories` → `routes` | データアクセスが HTTP 層を知ってはいけない                                                        |
-| 循環依存                             | 共通部分を切り出して一方向にする                                                                  |
+依存の向きは `.dependency-cruiser.mjs` が規約を持ち、`pnpm lint` が検査する。
 
-- 3 つの lint は役割が違う。**oxlint** = 1 ファイル内の書き方、**steiger** = `src/react-app` の
-  FSD 構造、**dependency-cruiser** = `worker` / `shared` / `react-app` をまたぐ依存の向き
-- ルールを足すときは `comment` に「なぜその向きが禁止か」を書く（理由の分からないルールは回避される）
+- `src/react-app` から `src/worker` を import してよいのは `import type` だけ（Hono RPC の型）。値を import すると worker の実装がクライアントのバンドルに入る
+- `src/shared` は worker / react-app の両方から読まれる土台なので、DTO と定数だけに保つ
+- `src/worker/repositories` から `src/worker/routes` を参照しない（データアクセスが HTTP 層を知ってはいけない）
 
-## オプション構成（add-on）
+## テスト
 
-**DB も認証もこのテンプレートには含まれていない**（要らないアプリがあるため既定では入れない）。
-必要になったら add-on skill で追加する。skill には手順と貼り付け用の実ファイル（`assets/`）が入っている。
-
-| 追加したいもの              | 適用する skill    | 前提                    |
-| --------------------------- | ----------------- | ----------------------- |
-| Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
-| Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
-
-- 「データを永続化したい」「テーブルを追加したい」なら、まず `add-d1-drizzle` が適用済みか確認する。
-  未適用なら手作りせず skill から適用する
-- 適用済みかどうかは `src/worker/db/` と `wrangler.json` の `d1_databases` の有無で判断できる
-- skill の手順が実態と合っていることは **参照実装ブランチ**で担保する。
-  main を更新したら対応するブランチを rebase して `pnpm check && pnpm test` を通す
-
-  | 参照実装ブランチ  | 適用済みの skill                     |
-  | ----------------- | ------------------------------------ |
-  | `example/d1-auth` | `add-d1-drizzle` + `add-better-auth` |
-
-- `pnpm skills:check` で `assets/` と参照実装ブランチのズレを検出できる（skill を編集したら実行する）
-
-Dependabot（`.github/dependabot.yml`）と自動マージ（`.github/workflows/dependabot-auto-merge.yml`）は
-テンプレート本体のメンテ用に既定で含まれている。アプリで不要なら削除してよい。
-
-## 外部スキル（`.agents/skills/` の復元物）
-
-テンプレートが保守する skill（`add-d1-drizzle` など）はコミットするが、外部リポジトリ由来の skill
-（`cloudflare/skills`, `honojs/skills`）は **`skills-lock.json` だけをコミット**し、実体は `.agents/skills/` に
-復元して gitignore する。復元する CLI も devDependency（`skills`）で固定している。
-
-| やりたいこと                        | コマンド                                                                                       |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 復元（`mise run setup` に含まれる） | `pnpm skills experimental_install`                                                             |
-| 追加 / 削除                         | `pnpm skills add cloudflare/skills --skill wrangler -a pi -y` / `pnpm skills remove <name> -y` |
-| 上流の更新を取り込む                | `pnpm skills update -p`                                                                        |
-
-- `-a pi` で指定する canonical な `.agents/skills/` だけに入れる（`.claude/skills` はここへの symlink なので
-  Claude Code からも見える）。付けないと検出されたエージェントごとのディレクトリにも入る
-- lock は commit を固定せず default branch の先端を取り込む。上流が変わると `computedHash` がずれて
-  `skills-lock.json` に差分が出るので、復元後は差分を確認して commit する
-- `.gitignore` は `.agents/skills/*` を無視して自前 skill だけを `!` で許可している。
-  自前 skill を足したら `!/.agents/skills/<name>/` も足す（足し忘れは `git add` が ignored で失敗するので気づける）
-
-## テストの書き分け
-
-| 対象                                            | 書き方                    |
-| ----------------------------------------------- | ------------------------- |
-| Hono route                                      | `src/worker/**/*.test.ts` |
-| コンポーネント・ページの描画 / 操作 / 状態分岐  | `*.stories.tsx` の `play` |
-| util 関数・複雑な計算ロジック（DOM に触らない） | 対象の隣に `*.test.ts`    |
-
-UI のために `render()` する専用テストファイルは作らず story にする。
+- UI（描画・操作・状態分岐）は `*.stories.tsx` の `play` で書く。UI のために `render()` する専用テストは作らない
+- DOM に触らないロジックは対象の隣に `*.test.ts`、Hono route は `src/worker/**/*.test.ts`（詳細は `testing` / `storybook-testing` skill）
 
 ## ハマりどころ
 
-- **Hono の method chain を切ると RPC の型が失われる**。route も `.route()` でのマウントも繋げたまま書く
-- react-app 配下の `*.test.ts` も **Workers runtime で実行される**（`document` / `window` なし）。DOM が要るものは story にする
-- `routeTree.gen.ts` は自動生成だが**コミット対象**（手編集はしない）
-- Storybook のテストはコールドキャッシュの初回だけ落ちることがある（上流の既知問題。対策済み）
+- Hono の method chain を切ると RPC の型が失われる。route 定義も `.route()` でのマウントも繋げたまま書く
+- `src/react-app` 配下の `*.test.ts` も Workers runtime で動く（`document` / `window` なし）。DOM が要るものは story にする
+- `routeTree.gen.ts` は自動生成だがコミット対象。手で編集しない
 
-## 詳細情報
+## DB・認証（add-on）
 
-| 知りたいこと                                            | 参照先                                                                      |
-| ------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Hono RPC の型付け（`InferResponseType` / `zValidator`） | `docs/hono-rpc-types.md`, `writing-hono-rpc-routes` skill                   |
-| Worker のテスト                                         | `testing` skill                                                             |
-| story / interaction test / MSW                          | `storybook-testing` skill                                                   |
-| UI コンポーネント追加                                   | `shadcn-ui` skill                                                           |
-| Cloudflare 全般                                         | `cloudflare`, `workers-best-practices`, `wrangler`, `durable-objects` skill |
-| react-app のレイヤー構成（Feature-Sliced Design）       | `fsd` skill                                                                 |
-| D1 + Drizzle ORM の追加                                 | `add-d1-drizzle` skill                                                      |
-| 認証（Better Auth / GitHub OAuth）の追加                | `add-better-auth` skill                                                     |
+main は DB なし・認証なしの最小構成。必要になったら手で作らず skill を適用する。
+
+- Cloudflare D1 + Drizzle ORM → `add-d1-drizzle` skill（`src/worker/db/` と `src/worker/repositories/` が増える）
+- Better Auth（GitHub OAuth）→ `add-better-auth` skill（`add-d1-drizzle` の適用が前提）
+- 適用済みかは `src/worker/db/` と `wrangler.json` の `d1_databases` の有無で分かる
+
+## 外部スキル
+
+外部リポジトリ由来の skill（`cloudflare`, `wrangler`, `hono` など）は `skills-lock.json` に固定し、実体は `.agents/skills/` に復元する（`mise run setup` に含まれる）。
+
+- 追加 / 削除 / 更新 → `pnpm skills add <owner>/<repo> --skill <name> -a pi -y` / `pnpm skills remove <name> -y` / `pnpm skills update -p`
+- リポジトリが保守する skill を足したら、`.gitignore` の許可リストに `!/.agents/skills/<name>/` も足す
+
+## 参照
+
+- Hono RPC の型付け（`InferResponseType` / `zValidator`）→ `docs/hono-rpc-types.md`
+- skill（`fsd` / `testing` / `storybook-testing` / `shadcn-ui` / `add-*` / `cloudflare` など）は description を見て、必要になったら読む
+- テンプレート本体のメンテ（参照実装ブランチ、`skills:check`、Dependabot、アプリへの展開）→ `template-maintenance` skill

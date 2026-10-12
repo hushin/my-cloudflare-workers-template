@@ -210,4 +210,5 @@ storybook-static
 !/.agents/skills/fsd/
 !/.agents/skills/shadcn-ui/
 !/.agents/skills/storybook-testing/
+!/.agents/skills/template-maintenance/
 !/.agents/skills/testing/

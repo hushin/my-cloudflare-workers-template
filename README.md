@@ -6,13 +6,9 @@
 
 ## テンプレートから引き継いだ設定
 
-以下はテンプレート本体の運用向けの設定です。このアプリで不要なら削除してかまいません。
-
-- `.github/dependabot.yml` … 依存パッケージの週次更新
-- `.github/workflows/dependabot-auto-merge.yml` … Dependabot の minor / patch PR の自動マージ
-- `.agents/skills/` の外部スキル（`cloudflare/skills`, `honojs/skills`）… `skills-lock.json` の内容を
-  `pnpm skills experimental_install` で復元する（`mise run setup` に含まれる）。不要なら `skills-lock.json` と
-  `skills` devDependency、`.gitignore` の該当行を削除する
+Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体の運用向けの設定です。扱いと、
+アプリを作るときの置換箇所・削除対象は `.agents/skills/template-maintenance/SKILL.md` に
+まとめてあります。アプリではその skill ごと削除して、この節も消してください。
 
 ## Tech Stack
 
@@ -36,22 +32,15 @@
 
 **データベースと認証は既定では含まれていない。** 要らないアプリがあるため main は最小構成に保ち、
 必要なアプリでだけ add-on として追加する。手順と貼り付け用の実ファイルは
-`.agents/skills/<name>/` にまとまっているので、Claude Code に skill を適用させる。
+`.agents/skills/<name>/` にまとまっているので、エージェントに skill を適用させる。
 
 | 追加したいもの              | skill             | 前提                    |
 | --------------------------- | ----------------- | ----------------------- |
 | Cloudflare D1 + Drizzle ORM | `add-d1-drizzle`  | なし                    |
 | Better Auth（GitHub OAuth） | `add-better-auth` | `add-d1-drizzle` 適用済 |
 
-これらの手順が実態とズレないよう、適用しきった状態を参照実装ブランチで維持している
-（参照用。直接 merge して使うものではない）。
-
-| 参照実装ブランチ  | 適用済みの skill                     |
-| ----------------- | ------------------------------------ |
-| `example/d1-auth` | `add-d1-drizzle` + `add-better-auth` |
-
-main を更新したら各ブランチを rebase して `pnpm check && pnpm test` を通し、
-`pnpm skills:check` で `assets/` とのズレが無いことを確認する。
+これらの手順が実態とズレないよう、適用しきった状態を `example/*` ブランチで維持している
+（直接 merge して使うものではない）。同期の手順は `template-maintenance` skill を参照。
 
 ## ディレクトリ構造
 
@@ -88,15 +77,15 @@ story（`*.stories.tsx`）と MSW モック（`*.mock.ts`）は対象ファイ�
 `src/react-app/` のレイヤー構成の詳細は `.agents/skills/fsd/SKILL.md` を参照。
 
 レイヤーをまたぐ import の向き（`shared` → `worker` 禁止、`react-app` → `worker` は
-`import type` のみ、など）は `.dependency-cruiser.mjs` に規約として書かれており、
-`pnpm lint` で検査される。一覧は `AGENTS.md` の「レイヤー規約」を参照。
+`import type` のみ、など）は `.dependency-cruiser.mjs` に規約（理由は `comment`）として書かれており、
+`pnpm lint` で検査される。概要は `AGENTS.md` の「依存の向き」を参照。
 
 ## よく使うコマンド
 
 ```bash
 # 環境セットアップ
 mise install          # Node, pnpm などのバージョンを揃える
-mise run setup        # pnpm install + lefthook install
+mise run setup        # pnpm install + 外部スキル復元 + Playwright + lefthook install
 
 # 開発
 pnpm dev              # 開発サーバー起動（localhost:5173）
