@@ -52,6 +52,23 @@ main を更新したら、手順書（`SKILL.md`）・`assets/`・参照実装�
 `.github/dependabot.yml`（週次更新）と `.github/workflows/dependabot-auto-merge.yml`
 （minor / patch の自動マージ）はテンプレート本体用。アプリでは不要なら削除する。
 
+## GitHub のセキュリティ設定
+
+リポジトリ単位の設定はテンプレートから作ったアプリには引き継がれない。
+`bash scripts/setup-github-security.sh [owner/repo]`（省略時は `gh repo view` から解決）で
+まとめて適用する。冪等なので何度実行してもよい。テンプレート本体にも適用済み。
+
+適用されるもの:
+
+- Dependabot alerts / security updates
+- CodeQL default setup
+- secret scanning と push protection
+- `main` の ruleset（`.github/rulesets/main.json`）: 削除と force push の禁止、PR 必須、
+  `ci` の成功必須、admin（RepositoryRole 5）は bypass
+
+ruleset を変えるときは `.github/rulesets/main.json` を編集してスクリプトを再実行する。
+`ci.yml` のジョブ名を変えたら `context`（今は `ci`）も合わせる。
+
 ## テンプレートからアプリを作るとき
 
 置換:
@@ -71,5 +88,10 @@ main を更新したら、手順書（`SKILL.md`）・`assets/`・参照実装�
 - 外部スキルが不要なら `skills-lock.json`、`skills` devDependency、`mise.toml` の復元行、
   `.gitignore` の Agent skills ブロック、`AGENTS.md` の「外部スキル」節
 
+作成後:
+
+- GitHub に push したら `bash scripts/setup-github-security.sh` を実行する
+  （ruleset の `ci` は一度 CI が走ってから required check として効く）
+
 残す: `add-d1-drizzle` / `add-better-auth`（DB・認証を足すときに使う）、`.github/workflows/ci.yml`、
-`docs/`、`.agents/skills/` の自前 skill。
+`scripts/setup-github-security.sh`、`.github/rulesets/`、`docs/`、`.agents/skills/` の自前 skill。
