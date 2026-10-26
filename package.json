@@ -38,8 +38,8 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.4.0",
-    "@cloudflare/vite-plugin": "1.62.5",
-    "@cloudflare/vitest-plugin": "^1.4.0",
+    "@cloudflare/vite-plugin": "1.64.0",
+    "@cloudflare/vitest-plugin": "^1.4.4",
     "@feature-sliced/steiger-plugin": "^0.8.0",
     "@storybook/addon-a11y": "^10.6.1",
     "@storybook/addon-docs": "^10.6.1",
@@ -74,7 +74,7 @@
     "typescript": "5.9.3",
     "vite": "^8.3.2",
     "vitest": "^5.0.3",
-    "wrangler": "4.147.0"
+    "wrangler": "4.151.1"
   },
   "packageManager": "pnpm@12.3.4"
 }
