@@ -1,6 +1,6 @@
 [tools]
 lefthook = "2"
-node = "24"
+node = "24.22.1"
 pnpm = "12"
 
 [tasks.setup]
