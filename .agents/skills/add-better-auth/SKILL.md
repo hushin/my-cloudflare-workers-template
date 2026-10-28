@@ -174,13 +174,17 @@ pnpm wrangler secret put GITHUB_CLIENT_SECRET
 （`auth/index.ts` が型エラーになり `pnpm check` が落ちる）。`BETTER_AUTH_URL` を `vars` に置くのが
 必須なのも同じ理由（`vars` にあれば `.dev.vars` の有無に左右されない）。
 
-### 8. vitest のモジュール解決を調整する
+### 8. vitest のモジュール解決を確認する
 
-`better-auth` → `@better-auth/core` が依存する `@opentelemetry/semantic-conventions` の ESM
-ビルド（`build/esm/index.js`）は、拡張子なしの相対 import（`export * from './trace'`）を含む。
-bundler はディレクトリの `index.js` に解決してくれるが、Workers runtime のモジュール解決は
-そうしないので、このままだと `pnpm test` が全 worker テストを
-`No such module ".../@opentelemetry/semantic-conventions/build/esm/trace"` で落とす。
+better-auth 1.6.x が使っていた `@better-auth/core` は `@opentelemetry/semantic-conventions` に
+依存し、その ESM ビルド（`build/esm/index.js`）が拡張子なしの相対 import（`export * from './trace'`）
+を含んでいた。Workers runtime のモジュール解決はディレクトリの `index.js` に解決しないため、
+`pnpm test` が全 worker テストを
+`No such module ".../@opentelemetry/semantic-conventions/build/esm/trace"` で落としていた。
+
+**better-auth 1.7 以降はこの依存が無くなったので、通常は何もしなくてよい**（参照実装
+`example/d1-auth` もこの workaround を持たない）。`pnpm add better-auth` で 1.6.x が入る場合や、
+上のエラーで `pnpm test` が落ちる場合だけ、以下を足す。
 
 Vite にバンドルさせて解決させる。`vitest.config.ts` の **ルートの `test`** に足す（`extends: true` で
 全 project が継承する）。`add-d1-drizzle` の `miniflare.bindings` / `setupFiles` と違い、これは
@@ -188,7 +192,6 @@ worker 専用ではなく依存の解決方法の設定なので、project の�
 
 ```ts
 test: {
-  maxWorkers: 4,
   // better-auth → @better-auth/core が使う @opentelemetry/semantic-conventions の
   // ESM ビルドは拡張子なしの相対 import（./trace）を含み、workerd のモジュール解決では引けない。
   // Vite にバンドルさせて解決させる。
@@ -213,8 +216,7 @@ publicHoistPattern:
   - '@opentelemetry/semantic-conventions'
 ```
 
-Cloudflare の known issues（Module resolution）に載っている回避策で、参照実装
-（`example/d1-auth`）にも同じ設定が入っている。
+Cloudflare の known issues（Module resolution）に載っている回避策。
 
 ### 9. 確認
 
@@ -271,4 +273,5 @@ const meta = { component: Header, loaders: [refetchSession] } satisfies Meta<typ
 - **`routeTree.gen.ts` の再生成漏れ** — route ファイルを足したら build を一度通す。
   `pnpm check` は lint が先なので、再生成前に走らせると型エラーで落ちる
 - **`pnpm test` が `No such module ".../@opentelemetry/semantic-conventions/build/esm/trace"` で
-  落ちる** — 手順 8 の `deps.optimizer` / `publicHoistPattern` の設定漏れ
+  落ちる** — better-auth 1.6.x の依存に当たっている。手順 8 の `deps.optimizer` /
+  `publicHoistPattern` を足す（1.7 以降では出ない）
