@@ -113,7 +113,12 @@ pnpm db:migrate:local   # ローカル（.wrangler 配下の SQLite）に適用
 
 ### 7. vitest を D1 対応にする
 
-`vitest.config.ts` に 3 箇所足す。ファイル全体を置き換えるのではなく差分で入れる。
+`vitest.config.ts` は `unit` / `worker` / `storybook` の 3 project 構成で、D1 を使うのは `worker`
+だけ。`readD1Migrations`・`TEST_MIGRATIONS`・`setupFiles` は **worker project の中にだけ**足す。
+
+ルートの `plugins` や `test` 直下（全 project が `extends: true` で継承する場所）に置くと、D1 に
+触らない `unit` / `storybook` にも migration の読み込みと workerd の用意が付いてくる。ファイル全体を
+置き換えず、下の差分を worker project の中に入れる。
 
 ```ts
 import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-plugin';
@@ -122,30 +127,55 @@ import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-plugin';
 const migrations = await readD1Migrations('./drizzle');
 
 export default defineConfig({
-  plugins: [
-    cloudflareTest({
-      wrangler: { configPath: './wrangler.json' },
-      // 2. 読んだ migration をテスト用 Worker のバインディングとして渡す
-      miniflare: {
-        bindings: { TEST_MIGRATIONS: migrations },
-      },
-    }),
-  ],
   test: {
     projects: [
+      // unit project はそのまま。D1 も workerd も使わないので何も足さない
       {
         extends: true,
+        test: { name: 'unit', environment: 'node' /* ... */ },
+      },
+      {
+        extends: true,
+        plugins: [
+          cloudflareTest({
+            wrangler: { configPath: './wrangler.json' },
+            // 2. 読んだ migration をテスト用 Worker のバインディングとして渡す
+            miniflare: {
+              bindings: { TEST_MIGRATIONS: migrations },
+            },
+          }),
+        ],
         test: {
+          name: 'worker',
           globals: true,
           // 3. 各テストファイルの実行前に migration を適用する
           setupFiles: ['./src/worker/test/apply-migrations.ts'],
+          include: ['src/worker/**/*.test.ts'],
+          // ...
         },
       },
-      // storybook プロジェクトはそのまま（MSW でモックするので D1 に触らない）
+      // storybook project はそのまま（MSW でモックするので D1 に触らない）
     ],
   },
 });
 ```
+
+やってはいけない形（どちらも全 project に掛かる）:
+
+```ts
+// ❌ ルートの plugins。unit / storybook にも workerd が用意される
+export default defineConfig({
+  plugins: [cloudflareTest({ miniflare: { bindings: { TEST_MIGRATIONS: migrations } } })],
+  test: {
+    // ❌ ルートの setupFiles。storybook 側でも migration を適用しようとする
+    setupFiles: ['./src/worker/test/apply-migrations.ts'],
+    projects: [/* ... */],
+  },
+});
+```
+
+`unit` のテストで `env.DB` を使いたくなったら、それは置き場所の誤り。`env` が要るなら
+`src/worker/` 配下（= `worker` project）に移す。
 
 0.18 で変わった点が 2 つあるので、古いドキュメントのコピペに注意する。
 
@@ -163,7 +193,12 @@ export default defineConfig({
 
 ```bash
 pnpm check && pnpm test
+pnpm exec vitest run --project unit    # workerd が起動しないこと
+pnpm exec vitest run --project worker  # D1 を使うテストが流れること
 ```
+
+`vitest.config.ts` の差分が worker project の中だけで閉じていることも見る（ルートの `plugins` や
+`test.setupFiles` に migration が漏れていないこと）。
 
 ## 新しいテーブルを足すとき
 

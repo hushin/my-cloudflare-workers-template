@@ -42,7 +42,12 @@ const preview: Preview = {
       // 'todo' - show a11y violations in the test UI only
       // 'error' - fail CI on a11y violations
       // 'off' - skip a11y checks entirely
-      test: 'todo',
+      //
+      // テストでは回さない。story ごとに axe が document 全体を走査するので、
+      // Storybook テストの時間のうち約 1/3 をこれが占める（DOM の大きい画面ほど高い）。
+      // 'todo' は違反しても CI を落とさないので、テストとしての検出力を下げずに待ち時間だけを減らせる。
+      // Storybook UI の a11y パネルは今までどおり使える。テストで違反を落としたくなったら 'error' にする。
+      test: 'off',
     },
   },
 };

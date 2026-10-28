@@ -66,7 +66,7 @@ Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体
 ├── docs/                  # ドキュメント
 ├── wrangler.json          # Wrangler 設定
 ├── vite.config.ts
-├── vitest.config.ts       # worker / storybook の 2 プロジェクト構成
+├── vitest.config.ts       # unit / worker / storybook の 3 プロジェクト構成
 ├── steiger.config.ts      # FSD の構造 lint
 ├── .dependency-cruiser.mjs # レイヤー間の import 方向の lint
 ├── tsconfig.*.json
@@ -105,7 +105,7 @@ pnpm fmt              # フォーマット
 pnpm fmt:check        # フォーマットチェック
 
 # テスト / Storybook
-pnpm test             # vitest run（worker テスト + storybook interaction test）
+pnpm test             # vitest run（unit + worker テスト + storybook interaction test）
 pnpm test:watch       # vitest watch
 pnpm storybook        # Storybook UI（localhost:6006）
 pnpm build-storybook  # Storybook の静的ビルド
@@ -117,12 +117,15 @@ npx wrangler tail     # Workers のリアルタイムログ
 
 ## テスト
 
-`pnpm test` は vitest の 2 プロジェクトをまとめて実行する。
+`pnpm test` は vitest の 3 プロジェクトをまとめて実行する。テストは置き場所で振り分けられる。
 
-| プロジェクト | 対象                             | 実行環境                                       |
-| ------------ | -------------------------------- | ---------------------------------------------- |
-| worker       | `src/**/*.test.ts`               | `@cloudflare/vitest-plugin`（Workers runtime） |
-| storybook    | `src/react-app/**/*.stories.tsx` | vitest browser mode（Playwright / chromium）   |
+| プロジェクト | 対象                                                    | 実行環境                                       |
+| ------------ | ------------------------------------------------------- | ---------------------------------------------- |
+| unit         | `src/react-app/**/*.test.ts`、`src/shared/**/*.test.ts` | Node（workerd を使わない）                     |
+| worker       | `src/worker/**/*.test.ts`                               | `@cloudflare/vitest-plugin`（Workers runtime） |
+| storybook    | `src/react-app/**/*.stories.tsx`                        | vitest browser mode（Playwright / chromium）   |
+
+`pnpm exec vitest run --project unit|worker|storybook` で 1 つだけ流せる。
 
 書き分けの方針:
 
@@ -130,9 +133,9 @@ npx wrangler tail     # Workers のリアルタイムログ
   interaction test** になる（[Storybook: Interaction testing](https://storybook.js.org/docs/writing-tests/interaction-testing)）。
   API は MSW でモックし、ハンドラは `src/react-app/shared/lib/msw-hono.ts` の `createHandler` で
   Hono の `AppType` から型付けして書く
-- **util 関数・複雑な計算ロジック** — 対象の隣に `*.test.ts` を置いて直接テストする。
-  ただし react-app 配下でも worker プロジェクト（Workers runtime）で実行されるため、
-  `document` / `window` は使えない（DOM が要るものは story にする）
-- **Hono route** — `src/worker/**/*.test.ts`
+- **util 関数・複雑な計算ロジック** — 対象の隣に `*.test.ts` を置いて直接テストする。unit プロジェクト
+  （Node）で流れるので速いが、`document` / `window` は使えない（DOM が要るものは story にする）。
+  `describe` / `it` / `expect` は `vitest` から import する
+- **Hono route** — `src/worker/**/*.test.ts`（workerd。`cloudflare:test` の `env` が使える）
 
 書き方の指針は `.agents/skills/storybook-testing/SKILL.md` にまとめてある。
