@@ -22,10 +22,10 @@ vitest browser mode（chromium）で実行する。Worker 側のテストは別�
 
 ### react-app 配下の `*.test.ts` の実行環境に注意
 
-`src/react-app/**/*.test.ts` は storybook プロジェクトではなく **worker プロジェクト
-（`@cloudflare/vitest-plugin` / Workers runtime）** で実行される。`describe` / `it` /
-`expect` はグローバルで使える（`globals: true`）が、**`document` / `window` は存在しない**
-（`navigator.userAgent` は `Cloudflare-Workers`）。
+`src/react-app/**/*.test.ts` は storybook プロジェクトではなく **`unit` プロジェクト（Node）** で
+実行される。workerd でもブラウザでもないので、**`document` / `window` は無い**
+（`cloudflare:test` の `env` も無い）。また `tsconfig.app.json` には `vitest/globals` を入れていない
+ので、`import { describe, expect, it } from 'vitest'` を明示する（`testing` skill）。
 
 - DOM や React に依存しない純粋な関数だけを `*.test.ts` にする
 - DOM が要るなら story にするか、hooks なら story 用の小さなラッパーコンポーネントを作って story で検証する
@@ -46,7 +46,7 @@ src/react-app/**/xxx.mock.ts      # MSW ハンドラ（隣に置く）
 - story の対象は `pages/<slice>/ui/` の画面 component（named export されている方を import する。例: `export function ExampleTodoPage()`）。`routes/*.tsx` のラッパーや `Route` オブジェクトは story にしない（route ファイルから component を export すると code splitting が効かなくなる。`tanstack-router` skill）
 
 ```bash
-pnpm test          # worker + storybook の両プロジェクトを実行
+pnpm test          # unit + worker + storybook の 3 プロジェクトを実行
 pnpm storybook     # Storybook UI（localhost:6006）で story を見ながら開発
 ```
 
@@ -249,7 +249,18 @@ export const Delete: Story = {
   story ごとに新規作成される（キャッシュが漏れない）
 - **Router のラップは不要**。`@storybook/tanstack-react` が memory router で自動的にラップする。
   自前の RouterProvider decorator を足さない
-- **a11y addon は `test: 'todo'`**（違反を表示するが CI は落とさない）。CI で落としたくなったら
-  `.storybook/preview.tsx` を `'error'` にする
+- **a11y の検査はテストでは `test: 'off'` 済み**。`'todo'` だと story ごとに axe が document 全体を
+  走査し、Storybook テストの時間の約 1/3 を占める（DOM の大きい画面ほど高い）。`'todo'` は違反しても
+  CI を落とさないので、落とせない検査のために毎 story 待つ価値がない。Storybook UI の a11y パネルは
+  今までどおり使える。テストで違反を見たくなったら `.storybook/preview.tsx` の `a11y.test` を
+  `'todo'`（表示だけ）か `'error'`（CI で落とす）に戻す
+- **モックの `delay()` は「応答前の表示」を見るためのもの**。そのままテストの待ち時間になるので、
+  応答前だと分かる範囲で短くする（このリポジトリでは 300ms 前後）。`delay('infinite')` は loading を
+  固定したいときだけ使う
+- **順序を作るための遅延は play 側で観測して待つ**。`await new Promise((r) => setTimeout(r, 700))`
+  のような固定時間の待ちは、その時間ぶんテストが遅くなるうえ、遅い環境では足りなくて flaky になる。
+  「応答が届いたこと」を UI の変化で観測する（例:
+  `await waitFor(() => expect(canvas.getByRole('button', { name: 'Retry' })).toBeEnabled())`）。
+  固定時間の待ちは、他に観測できるものが無いときだけ使う
 - Tailwind は `.storybook/main.ts` の `viteFinal` でも明示的に追加している（vitest 実行時に
   root の vite.config.ts だけでは効かないため）。消さないこと

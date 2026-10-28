@@ -29,13 +29,13 @@ pnpm add better-auth
 
 `assets/src/worker/auth/` を `src/worker/auth/` にコピーする。
 
-| ファイル             | 役割                                                         |
-| -------------------- | ------------------------------------------------------------ |
-| `options.ts`         | DB / secret を除いた共通設定。plugin を足すならここ          |
-| `index.ts`           | `createAuth(env)` ファクトリと `AuthUser` / `AuthSession` 型 |
-| `cli.ts`             | スキーマ生成 CLI 専用のエントリ（実行時には使わない）        |
-| `middleware.ts`      | `sessionMiddleware` / `requireAuth` と `AuthEnv` 型          |
-| `middleware.test.ts` | 未ログイン時に 401 を返すことの worker テスト                |
+| ファイル             | 役割                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
+| `options.ts`         | DB / secret を除いた共通設定。plugin を足すならここ                                               |
+| `index.ts`           | `createAuth(env)` ファクトリと `AuthUser` / `AuthSession` 型                                      |
+| `cli.ts`             | スキーマ生成 CLI 専用のエントリ（実行時には使わない）                                             |
+| `middleware.ts`      | `sessionMiddleware` / `requireAuth` と `AuthEnv` 型                                               |
+| `middleware.test.ts` | 未ログイン時に 401 を返すことの worker テスト（`src/worker/**` なので `worker` project で流れる） |
 
 **`createAuth` をモジュールトップで呼ばない**。Workers の `env` はリクエストスコープなので、
 ハンドラの中で `createAuth(c.env)` として都度生成する。
@@ -182,16 +182,25 @@ bundler はディレクトリの `index.js` に解決してくれるが、Worker
 そうしないので、このままだと `pnpm test` が全 worker テストを
 `No such module ".../@opentelemetry/semantic-conventions/build/esm/trace"` で落とす。
 
-Vite にバンドルさせて解決させる。`vitest.config.ts` の `test` に足す。
+Vite にバンドルさせて解決させる。`vitest.config.ts` の **ルートの `test`** に足す（`extends: true` で
+全 project が継承する）。`add-d1-drizzle` の `miniflare.bindings` / `setupFiles` と違い、これは
+worker 専用ではなく依存の解決方法の設定なので、project の中に入れない。
 
 ```ts
-deps: {
-  optimizer: {
-    ssr: {
-      enabled: true,
-      include: ['@opentelemetry/semantic-conventions'],
+test: {
+  maxWorkers: 4,
+  // better-auth → @better-auth/core が使う @opentelemetry/semantic-conventions の
+  // ESM ビルドは拡張子なしの相対 import（./trace）を含み、workerd のモジュール解決では引けない。
+  // Vite にバンドルさせて解決させる。
+  deps: {
+    optimizer: {
+      ssr: {
+        enabled: true,
+        include: ['@opentelemetry/semantic-conventions'],
+      },
     },
   },
+  projects: [/* unit / worker / storybook */],
 },
 ```
 

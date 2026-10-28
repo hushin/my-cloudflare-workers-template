@@ -20,7 +20,7 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 
 ```bash
 pnpm check       # 検証: lint（型チェック込み）+ fmt:check + vite build + deploy --dry-run
-pnpm test        # 検証: vitest run（worker + storybook）
+pnpm test        # 検証: vitest run（unit + worker + storybook）
 pnpm lint        # lint だけ（oxlint + steiger + dependency-cruiser）
 pnpm fmt         # 整形（oxfmt）。lint の自動修正は pnpm lint:fix
 pnpm dev         # 開発サーバー（localhost:5173）
@@ -56,13 +56,27 @@ src/
 
 ## テスト
 
+`vitest.config.ts` は 3 つの project を持ち、テストの置き場所で振り分ける。`pnpm test` は 3 つをまとめて流す。
+
+| project     | 何を流すか                                                                                  | どこで動くか                         |
+| ----------- | ------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `unit`      | `src/react-app/**/*.test.ts`、`src/shared/**/*.test.ts`、`PURE_WORKER_TESTS` に列挙したもの | Node（workerd なしで速い）           |
+| `worker`    | `src/worker/**/*.test.ts`（`PURE_WORKER_TESTS` を除く）                                     | workerd + migration 適用済みの D1    |
+| `storybook` | `*.stories.tsx` の `play`                                                                   | Chromium（Playwright，browser mode） |
+
 - UI（描画・操作・状態分岐）は `*.stories.tsx` の `play` で書く。UI のために `render()` する専用テストは作らない
-- DOM に触らないロジックは対象の隣に `*.test.ts`、Hono route は `src/worker/**/*.test.ts`（詳細は `testing` / `storybook-testing` skill）
+- DOM に触らないロジックは対象の隣に `*.test.ts`。`src/worker/**` は中身が純粋でも既定では `worker`（workerd）で流す（worker のバンドル解決を実 runtime で確かめられるようにするため）。bindings も workerd も要らないと分かっているものだけ `vitest.config.ts` の `PURE_WORKER_TESTS` に列挙して `unit` に移す
+- `unit` は Node なので `document` / `window` は無い（DOM が要るものは story にする）。`cloudflare:test`（`env` や D1）が使えるのは `worker` project だけ
+- `unit` 側の `*.test.ts` は `import { describe, expect, it } from 'vitest'` を明示する（`tsconfig.app.json` に `vitest/globals` を入れていないため）。`worker` 側は globals でよい
+- worker のテストは migration 適用済みの D1 を使う。テーブルを足したら `beforeEach` に `DELETE FROM <table>` を足す（詳細は `testing` skill）
+- D1 はテストファイルごとに隔離されるので、ファイルは並列に流してよい。`maxWorkers` は 4 に固定してある（既定値は CPU 数依存で、2 vCPU の CI ランナーでは 1 = 完全に直列になるため）
+- project を絞るなら `pnpm exec vitest run --project unit` / `--project worker` / `--project storybook`
+- Storybook テストには Playwright の chromium が要る。無ければ `pnpm exec playwright install chromium`
 
 ## ハマりどころ
 
 - Hono の method chain を切ると RPC の型が失われる。route 定義も `.route()` でのマウントも繋げたまま書く
-- `src/react-app` 配下の `*.test.ts` も Workers runtime で動く（`document` / `window` なし）。DOM が要るものは story にする
+- `src/react-app` 配下の `*.test.ts` は Node（`unit` project）で動く（`document` / `window` なし）。DOM が要るものは story にする
 - `routeTree.gen.ts` は自動生成だがコミット対象。手で編集しない
 
 ## DB・認証（add-on）
