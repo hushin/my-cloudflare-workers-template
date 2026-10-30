@@ -7,7 +7,7 @@
     "build": "tsc -b && vite build",
     "cf-typegen": "wrangler types",
     "check": "pnpm lint && pnpm fmt:check && vite build && wrangler deploy --dry-run",
-    "deploy": "wrangler deploy",
+    "deploy": "pnpm run build && wrangler deploy",
     "dev": "vite",
     "lint": "oxlint && steiger ./src/react-app && depcruise src",
     "lint:fix": "oxlint --fix && steiger ./src/react-app --fix",

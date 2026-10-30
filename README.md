@@ -93,7 +93,7 @@ pnpm dev              # 開発サーバー起動（localhost:5173）
 # ビルド & デプロイ
 pnpm build            # プロダクションビルド
 pnpm preview          # ビルドしたものをローカルプレビュー
-pnpm run deploy       # Cloudflare Workers にデプロイ (run が必要)
+pnpm run deploy       # ビルドして Cloudflare Workers にデプロイ (run が必要)
 pnpm check            # 型チェック + ビルド + dry-run
 
 # Lint / Format
