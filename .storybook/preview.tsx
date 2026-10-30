@@ -4,7 +4,11 @@ import type { Preview } from '@storybook/tanstack-react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { mswLoader } from 'msw-storybook-addon/csf3';
+import { configure } from 'storybook/test';
 import '../src/react-app/index.css';
+
+// waitFor / findBy の待ち時間。遅い CI のマシンで既定の 1000ms を超えて落ちることがあるので、2000ms に延ばす
+configure({ asyncUtilTimeout: 2000 });
 
 const preview: Preview = {
   // @storybook/tanstack-react が各 story を memory-backed な TanStack Router で
