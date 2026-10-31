@@ -88,6 +88,10 @@ export default defineConfig({
         ],
         test: {
           name: 'storybook',
+          // ファイルごとに iframe を作り直すと React などのモジュールを毎回評価し直し、
+          // 2 vCPU の CI では story の時間の大半がそれで埋まる。story ごとに QueryClient を
+          // 作り MSW の handler も差し替えるので、ファイル間で iframe を使い回してよい。
+          isolate: false,
           setupFiles: ['./.storybook/vitest.setup.ts'],
           browser: {
             enabled: true,
