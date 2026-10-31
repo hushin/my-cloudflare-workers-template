@@ -4,6 +4,11 @@ import { Header } from './Header';
 
 const meta = {
   component: Header,
+  // header は実アプリで sticky + 全幅（RootLayout の直下）。padded レイアウトだと 16px の
+  // 余白が付いて sticky な header が viewport 幅にならないので、fullscreen で描く。
+  parameters: {
+    layout: 'fullscreen',
+  },
 } satisfies Meta<typeof Header>;
 
 export default meta;

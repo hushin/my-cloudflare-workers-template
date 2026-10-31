@@ -9,6 +9,21 @@ import {
 
 const meta = {
   component: ExampleTodoPage,
+  // 実アプリでは RootLayout の <main className="container mx-auto flex-1 px-4 py-10 sm:py-14">
+  // の中に置かれる。padded レイアウトの 16px 余白で代用すると縦の余白や container の
+  // 最大幅が実アプリとずれるので、fullscreen + 実アプリと同じ main を再現する。
+  parameters: {
+    layout: 'fullscreen',
+  },
+  decorators: [
+    (Story) => (
+      <div className="relative flex min-h-screen flex-col bg-background">
+        <main className="container mx-auto flex-1 px-4 py-10 sm:py-14">
+          <Story />
+        </main>
+      </div>
+    ),
+  ],
   // story ごとにモックの状態を初期化して、実行順に依存しないようにする
   beforeEach: [
     () => {
