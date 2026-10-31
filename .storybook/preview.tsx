@@ -34,6 +34,12 @@ const preview: Preview = {
       return worker;
     }),
   ],
+  // play の userEvent は 1 打鍵ごとに setTimeout(0) を待ち、入れ子のタイマーはブラウザが
+  // 4ms に切り上げるので、文字を打つ story ほど待ちが積もる。
+  // 打鍵の間を待たないようにする。
+  beforeEach: (context) => {
+    context.userEvent = context.userEvent.setup({ delay: null });
+  },
   parameters: {
     controls: {
       matchers: {
