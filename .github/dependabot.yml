@@ -29,7 +29,6 @@ updates:
         patterns:
           - 'storybook'
           - '@storybook/*'
-          - '@chromatic-com/storybook'
           - 'msw-storybook-addon'
       vitest:
         patterns:
