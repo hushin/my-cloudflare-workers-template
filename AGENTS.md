@@ -12,6 +12,7 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 - パッケージマネージャは pnpm（mise で Node 24 / pnpm 12 を固定）
 - 変更が一区切りしたら `pnpm check` と `pnpm test` を通す。型チェックは oxlint が兼ねるので `pnpm check` で型エラーまで見える
 - `worker-configuration.d.ts` は `pnpm cf-typegen` の生成物。手で編集しない
+- GitHub Actions の action は `uses:` にタグで書き、実行される commit は `.github/workflows/actions.lock` で固定する。action を足したり変えたりしたら `gh actions-lock`（`gh extension install github/gh-actions-lock`）で lockfile を更新する。手で編集しない。Dependabot の更新 PR は lockfile も一緒に更新する
 - コミットメッセージは Conventional Commits
 - シークレットは `.dev.vars` / `wrangler secret put`（コミットしない）。公開してよい設定は `wrangler.json` の `vars`
 - 整形は oxfmt、lint の自動修正は `pnpm lint:fix` が行う（pre-commit の lefthook も同じものを走らせる）
