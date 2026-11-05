@@ -24,7 +24,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # mise.toml に書いた Node / pnpm のバージョンをそのまま使う
+      # mise が解決した Node（.node-version）と pnpm（mise.toml）のバージョンをそのまま使う
       - name: Setup mise
         uses: jdx/mise-action@v5.2.3
 

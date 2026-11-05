@@ -26,7 +26,7 @@ Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体
 | テスト         | Vitest, @cloudflare/vitest-plugin, @storybook/addon-vitest（browser mode / Playwright） |
 | Git hooks      | lefthook                                                                                |
 | パッケージ管理 | pnpm                                                                                    |
-| バージョン管理 | mise                                                                                    |
+| バージョン管理 | mise（pnpm など）, `.node-version`（Node）                                              |
 
 ## オプション構成（add-on）
 
@@ -70,7 +70,8 @@ Dependabot と外部スキル（`skills-lock.json`）はテンプレート本体
 ├── steiger.config.ts      # FSD の構造 lint
 ├── .dependency-cruiser.mjs # レイヤー間の import 方向の lint
 ├── tsconfig.*.json
-└── mise.toml              # ツールバージョン管理
+├── .node-version          # Node のバージョン（Workers Builds もこれを読む）
+└── mise.toml              # ツールバージョン管理（pnpm など）
 ```
 
 story（`*.stories.tsx`）と MSW モック（`*.mock.ts`）は対象ファイルの隣に置く。
@@ -84,7 +85,7 @@ story（`*.stories.tsx`）と MSW モック（`*.mock.ts`）は対象ファイ�
 
 ```bash
 # 環境セットアップ
-mise install          # Node, pnpm などのバージョンを揃える
+mise install          # .node-version（Node）と mise.toml（pnpm など）の版を揃える
 mise run setup        # pnpm install + 外部スキル復元 + Playwright + lefthook install
 
 # 開発
