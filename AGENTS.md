@@ -9,7 +9,8 @@ shadcn/ui（base UI）+ Tailwind v4 / zod / Vitest + Storybook 10 / oxlint + oxf
 
 ## 作業のルール
 
-- パッケージマネージャは pnpm（mise で Node 26 / pnpm 12 を固定）
+- パッケージマネージャは pnpm（Node 26 は `.node-version`、pnpm 12 は mise で固定）
+- Node の版は `.node-version` にだけ書く（mise は `mise.toml` の `[settings]` で `.node-version` を読む。Cloudflare Workers Builds は `mise.toml` を読まないため）
 - 変更が一区切りしたら `pnpm check` と `pnpm test` を通す。型チェックは oxlint が兼ねるので `pnpm check` で型エラーまで見える
 - `worker-configuration.d.ts` は `pnpm cf-typegen` の生成物。手で編集しない
 - GitHub Actions の action は `uses:` にタグで書き、実行される commit は `.github/workflows/actions.lock` で固定する。action を足したり変えたりしたら `gh actions-lock`（`gh extension install github/gh-actions-lock`）で lockfile を更新する。手で編集しない。Dependabot の更新 PR は lockfile も一緒に更新する
