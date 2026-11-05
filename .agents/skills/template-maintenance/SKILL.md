@@ -47,6 +47,12 @@ main を更新したら、手順書（`SKILL.md`）・`assets/`・参照実装�
 - lock は commit を固定せず default branch の先端を取る。復元後に `skills-lock.json` に差分が出たら確認して commit する
 - リポジトリが保守する skill は `.gitignore` の許可リストで追跡する（足したら `!/.agents/skills/<name>/` も足す）
 
+## Node の版
+
+Node の版は `.node-version` にだけ書く。mise は `mise.toml` の `[settings]` で、Cloudflare Workers Builds は
+自前でこのファイルを読む（Workers Builds は `mise.toml` を読まない）。上げるときは `.node-version` と
+`@types/node` の major を一緒に上げる（Dependabot は `@types/node` の major を上げない設定）。
+
 ## Dependabot
 
 `.github/dependabot.yml`（週次更新）と `.github/workflows/dependabot-auto-merge.yml`
@@ -92,6 +98,7 @@ ruleset を変えるときは `.github/rulesets/main.json` を編集してスク
 
 - GitHub に push したら `bash scripts/setup-github-security.sh` を実行する
   （ruleset の `ci` は一度 CI が走ってから required check として効く）
+- Workers Builds を繋いだら、最初のビルドログで `.node-version` の Node が使われていることを確認する
 
 残す: `add-d1-drizzle` / `add-better-auth`（DB・認証を足すときに使う）、`.github/workflows/ci.yml`、
 `scripts/setup-github-security.sh`、`.github/rulesets/`、`docs/`、`.agents/skills/` の自前 skill。
