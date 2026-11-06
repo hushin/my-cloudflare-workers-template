@@ -58,6 +58,42 @@ Node の版は `.node-version` にだけ書く。mise は `mise.toml` の `[sett
 `.github/dependabot.yml`（週次更新）と `.github/workflows/dependabot-auto-merge.yml`
 （minor / patch の自動マージ）はテンプレート本体用。アプリでは不要なら削除する。
 
+### security_update_not_possible で落ちるとき
+
+pnpm の**推移的依存**が脆弱なままだと、セキュリティ更新ジョブが `security_update_not_possible` で
+失敗する。Dependabot は推移的依存に `pnpm update <pkg>@<ver> --lockfile-only --no-save -r` を流すが、
+これは pnpm では no-op になる（dependabot-core#15766）。設定ミスではないので、`dependabot.yml` を
+いじっても直らない。
+
+1. 対象を確認する
+
+   ```bash
+   gh api -X GET /repos/{owner}/{repo}/dependabot/alerts -f state=open \
+     --jq '.[] | "\(.number)\t\(.dependency.package.name)\t\(.security_vulnerability.first_patched_version.identifier // "修正版なし")"'
+   ```
+
+2. 親のレンジ内に修正版があるものは、鎖ごと手元で更新する（`<pkg>@<ver>` の形にしない）
+
+   ```bash
+   pnpm update fast-uri systeminformation seroval -r
+   pnpm check && pnpm test       # 検証してから commit
+   ```
+
+   アラートは push 後の dependency graph 更新で自然に閉じる。
+
+3. 直せないものは上流待ち。修正版が major のみ（親が `^10` なのに修正版が 11 など）か、修正版自体が
+   存在しない場合。放置すると push のたびに赤い×が付くので、許容するなら dismiss する
+   （`dismissed_reason` は `fix_started` / `inaccurate` / `no_bandwidth` / `not_used` / `tolerable_risk`）
+
+   ```bash
+   gh api -X PATCH /repos/{owner}/{repo}/dependabot/alerts/<number> \
+     -f state=dismissed -f dismissed_reason=tolerable_risk \
+     -f dismissed_comment='dev 専用の CLI 依存。上流のレンジ拡大待ち'
+   ```
+
+`pnpm audit` で手元の残数も確認できる。2026-11 の実例: `pnpm update fast-uri systeminformation seroval
+ip-address brace-expansion source-map-js -r` で 23 → 2 件（残りは `minimatch` と `deepmerge`）。
+
 ## GitHub のセキュリティ設定
 
 リポジトリ単位の設定はテンプレートから作ったアプリには引き継がれない。
