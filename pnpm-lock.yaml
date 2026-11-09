@@ -117,7 +117,7 @@ importers:
         version: 5.3.0
       '@hono/zod-validator':
         specifier: ^0.9.1
-        version: 0.9.1(hono@4.13.14)(zod@4.6.7)
+        version: 0.9.1(hono@4.13.16)(zod@4.6.7)
       '@tanstack/react-form':
         specifier: ^1.33.5
         version: 1.33.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -128,8 +128,8 @@ importers:
         specifier: ^1.170.46
         version: 1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       hono:
-        specifier: 4.13.14
-        version: 4.13.14
+        specifier: 4.13.16
+        version: 4.13.16
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -153,8 +153,8 @@ importers:
         specifier: ^1.4.12
         version: 1.4.12(@types/node@26.6.6)(vitest@5.0.5)
       '@feature-sliced/steiger-plugin':
-        specifier: ^0.8.1
-        version: 0.8.1(typescript@5.9.3)
+        specifier: ^0.8.2
+        version: 0.8.2(typescript@5.9.3)
       '@storybook/addon-a11y':
         specifier: ^10.6.5
         version: 10.6.5(storybook@10.6.5(@types/react@19.3.0)(prettier@3.9.6)(react@19.3.1))
@@ -201,11 +201,11 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       dependency-cruiser:
-        specifier: ^18.7.0
-        version: 18.7.0
+        specifier: ^18.7.1
+        version: 18.7.1
       lucide-react:
-        specifier: ^1.64.0
-        version: 1.64.0(@types/react@19.3.0)(react@19.3.1)
+        specifier: ^1.66.0
+        version: 1.66.0(@types/react@19.3.0)(react@19.3.1)
       mockdate:
         specifier: ^3.0.5
         version: 3.0.5
@@ -231,8 +231,8 @@ importers:
         specifier: 1.7.4
         version: 1.7.4
       steiger:
-        specifier: ^0.8.1
-        version: 0.8.1(typescript@5.9.3)
+        specifier: ^0.9.0
+        version: 0.9.0(typescript@5.9.3)
       storybook:
         specifier: ^10.6.5
         version: 10.6.5(@types/react@19.3.0)(prettier@3.9.6)(react@19.3.1)
@@ -711,8 +711,8 @@ packages:
   '@feature-sliced/filesystem@3.1.0':
     resolution: {integrity: sha512-kdNcVwJMCiORdi2Aog7epDeQMEREFUvdqqQHmE7D3ZjSdsQzZWMH6Ex7gtGAttTT/oRBFysqCtP5pl0CETEc9Q==}
 
-  '@feature-sliced/steiger-plugin@0.8.1':
-    resolution: {integrity: sha512-hnRmnpGT7HoOv3Hy+et1xFq1IsCogp0SEfLlEC73kI74nlm0zQl8q1QN78iG0PEXyLZUAsqJIfG8rZHvva5vEg==}
+  '@feature-sliced/steiger-plugin@0.8.2':
+    resolution: {integrity: sha512-Gmc6b2GhjAT+Y+cQfHaCT+R1PnSuoOFcS6qsYtCnY8WjVH1FyT18FWJnhUjMyw4jN1Oqg0jSj5xeDDLs2InWoA==}
 
   '@floating-ui/core@1.8.0':
     resolution: {integrity: sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ==}
@@ -2686,8 +2686,8 @@ packages:
     resolution: {integrity: sha512-N+MeXYoqr3pOgn8xfyRPREN7gHakLYjhsHhWGT3fWAiL4IkAt0iDw14QiiEm2bE30c5XX5q0FtAA3CK5f9/BUg==}
     engines: {node: '>=12'}
 
-  dependency-cruiser@18.7.0:
-    resolution: {integrity: sha512-WexT4OswA6Gy86ms2J7SJ4FJscN43dyS+i5skpbtXlPTFQW4yWbontjFip1TOBAVnc+U+9zdH0a56YTRZX/IGw==}
+  dependency-cruiser@18.7.1:
+    resolution: {integrity: sha512-vanJIqmFjgupsXQN+hD2ygve2w/PVkiE1tvnr3SiObMC2U67QL7yJDNh9dvShn8HtwOyfBWwyvi6ch60AsYpbA==}
     engines: {node: ^22||^24||>=26}
     hasBin: true
 
@@ -2937,8 +2937,8 @@ packages:
   headers-polyfill@5.0.1:
     resolution: {integrity: sha512-1TJ6Fih/b8h5TIcv+1+Hw0PDQWJTKDKzFZzcKOiW1wJza3XoAQlkCuXLbymPYB8+ZQyw8mHvdw560e8zVFIWyA==}
 
-  hono@4.13.14:
-    resolution: {integrity: sha512-yhRLQ21U6qa9Hsu2N7Qcbh8tE+WKEcoErjIo56LeSGiGXGp9sA7UpE86Ui9uexb61KakiGwuHMn2QdV7w6i6kQ==}
+  hono@4.13.16:
+    resolution: {integrity: sha512-AOLOEhvrV+iH92xXCnFr/5+3KjPKcI3xP63XJtX5spAnkznPdHijlIsUTpi7/9EhWqrTCekw5c5zh1K+YsVw7A==}
     engines: {node: '>=16.9.0'}
 
   human-signals@2.1.0:
@@ -2953,8 +2953,8 @@ packages:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
 
-  ignore@7.0.12:
-    resolution: {integrity: sha512-/8UvqAPU9DGTI9k4mxtf49U37Isfwr8Uts96+SBHIkFxPJnHS0Ew4f00sM4Scd8V8EjM0jUNtVDdv1kPdt35lg==}
+  ignore@7.0.14:
+    resolution: {integrity: sha512-wCBiZ77u1tuWde6G/nfOtLaCTYcFDU5yCzARzK10y+rLhzYoL7a7yEemcopcc2Mzow7gZOIjnV2ym1NYmdiJOQ==}
     engines: {node: '>= 4'}
 
   immer@10.2.0:
@@ -3294,8 +3294,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@1.64.0:
-    resolution: {integrity: sha512-v626F/bcLNvFom6vzztHILtG9tUgXXbgA5AGkd82YkV401+Ko/NHyrWafbPwGofa+6p/EgDJcvEkIwsMH9098w==}
+  lucide-react@1.66.0:
+    resolution: {integrity: sha512-8zjbi/Us+ETXqfBwmXF/FHrWGIqOdE6zT1yUdRJLQVoptomSkB0zdFWVIM667t9K8djWDaXdkBkqi2qVTuDNiw==}
     peerDependencies:
       '@types/react': '*'
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -3810,8 +3810,8 @@ packages:
     resolution: {integrity: sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==}
     engines: {node: '>=18'}
 
-  steiger@0.8.1:
-    resolution: {integrity: sha512-w55+5bYKjqmYMotlaYtZjSZhAZmLFDGUkZ7wmN9m5Kf2Y4I6yYK9PGzZUfaSdnrYIFibyRG/vjtZPiFCsXNK6w==}
+  steiger@0.9.0:
+    resolution: {integrity: sha512-J/Iw/33PaHi8Ws99ikizIKV3uLL/PGCsq2Xqsj+qGASq48EukXHrvqHDgEWJAZuKToMha8uOmbNRT6S1XumqsA==}
     engines: {node: '>=22.18.0'}
     hasBin: true
 
@@ -4786,7 +4786,7 @@ snapshots:
     dependencies:
       typescript: 5.9.3
 
-  '@feature-sliced/steiger-plugin@0.8.1(typescript@5.9.3)':
+  '@feature-sliced/steiger-plugin@0.8.2(typescript@5.9.3)':
     dependencies:
       '@feature-sliced/filesystem': 3.1.0
       fastest-levenshtein: 1.0.16
@@ -4815,9 +4815,9 @@ snapshots:
 
   '@fontsource-variable/geist@5.3.0': {}
 
-  '@hono/zod-validator@0.9.1(hono@4.13.14)(zod@4.6.7)':
+  '@hono/zod-validator@0.9.1(hono@4.13.16)(zod@4.6.7)':
     dependencies:
-      hono: 4.13.14
+      hono: 4.13.16
       zod: 4.6.7
 
   '@img/colour@1.1.0': {}
@@ -6319,7 +6319,7 @@ snapshots:
 
   define-lazy-prop@3.0.0: {}
 
-  dependency-cruiser@18.7.0:
+  dependency-cruiser@18.7.1:
     dependencies:
       acorn: 8.19.0
       acorn-jsx: 5.3.2(acorn@8.19.0)
@@ -6328,7 +6328,7 @@ snapshots:
       acorn-walk: 8.3.5
       commander: 15.0.0
       enhanced-resolve: 5.26.0
-      ignore: 7.0.12
+      ignore: 7.0.14
       interpret: 3.1.1
       is-installed-globally: 1.0.1
       json5: 2.2.3
@@ -6563,7 +6563,7 @@ snapshots:
     dependencies:
       '@sindresorhus/merge-streams': 4.0.0
       fast-glob: 3.3.3
-      ignore: 7.0.12
+      ignore: 7.0.14
       is-path-inside: 4.0.0
       micromatch: 4.0.8
       slash: 5.1.0
@@ -6585,7 +6585,7 @@ snapshots:
       '@types/set-cookie-parser': 2.4.10
       set-cookie-parser: 3.1.2
 
-  hono@4.13.14: {}
+  hono@4.13.16: {}
 
   human-signals@2.1.0: {}
 
@@ -6593,7 +6593,7 @@ snapshots:
 
   ignore@5.3.2: {}
 
-  ignore@7.0.12: {}
+  ignore@7.0.14: {}
 
   immer@10.2.0: {}
 
@@ -6818,7 +6818,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@1.64.0(@types/react@19.3.0)(react@19.3.1):
+  lucide-react@1.66.0(@types/react@19.3.0)(react@19.3.1):
     dependencies:
       react: 19.3.1
     optionalDependencies:
@@ -7459,10 +7459,10 @@ snapshots:
 
   stdin-discarder@0.2.2: {}
 
-  steiger@0.8.1(typescript@5.9.3):
+  steiger@0.9.0(typescript@5.9.3):
     dependencies:
       '@clack/prompts': 0.9.1
-      '@feature-sliced/steiger-plugin': 0.8.1(typescript@5.9.3)
+      '@feature-sliced/steiger-plugin': 0.8.2(typescript@5.9.3)
       chokidar: 4.0.3
       cosmiconfig: 10.0.1
       effector: 23.4.4
