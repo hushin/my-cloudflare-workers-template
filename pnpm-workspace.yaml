@@ -4,3 +4,14 @@ allowBuilds:
   esbuild: true
   workerd: true
   sharp: true
+
+# pnpm の推移的依存は Dependabot が更新できない（dependabot-core#15766）。
+# 親のレンジ内に修正版が無いものだけ、ここで固定して手当てする。
+# 経緯と判断基準は .agents/skills/template-maintenance/SKILL.md を参照。
+overrides:
+  # GHSA-g3hv-75wg-m249。@ts-morph/common が使う API は minimatch(path, pattern)
+  # だけで 11 でも互換（親の指定は ^10.0.1）
+  minimatch: 11.0.7
+  # GHSA-3g3m-2fjr-6pw4。0.9.1 で glob 依存が tinyglobby に置き換わり消える
+  # （@storybook/react-vite の指定は ^0.7.0）
+  '@joshwooding/vite-plugin-react-docgen-typescript': 0.9.1

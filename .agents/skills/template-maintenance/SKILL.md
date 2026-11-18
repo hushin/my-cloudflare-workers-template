@@ -81,9 +81,27 @@ pnpm の**推移的依存**が脆弱なままだと、セキュリティ更新�
 
    アラートは push 後の dependency graph 更新で自然に閉じる。
 
-3. 直せないものは上流待ち。修正版が major のみ（親が `^10` なのに修正版が 11 など）か、修正版自体が
-   存在しない場合。放置すると push のたびに赤い×が付くので、許容するなら dismiss する
-   （`dismissed_reason` は `fix_started` / `inaccurate` / `no_bandwidth` / `not_used` / `tolerable_risk`）
+3. 親のレンジ外にしか修正版が無くても、親が使う API が互換なら `pnpm-workspace.yaml` の `overrides`
+   で固定して直せる。黙って黙らせるのではなく、**実際に脆弱なコードを外す**こと
+
+   ```yaml
+   # pnpm-workspace.yaml
+   overrides:
+     minimatch: 11.0.7
+   ```
+
+   - 親が呼ぶ API を確認する（例: `@ts-morph/common` は `minimatch(path, pattern)` だけなので 11 でも動く）
+   - 鎖ごと消せるなら、親ごと上げる方がよい（例: `@joshwooding/vite-plugin-react-docgen-typescript`
+     0.9.1 は `glob` 依存自体を tinyglobby に置き換えて消す）
+   - `overrides` は**実際に使われる実体**に効く。`glob` の既定 entry のように依存をバンドルしている
+     パッケージでは、`overrides` で別バージョンを入れても中のコードは変わらない。`pnpm why <pkg>` で
+     解決先を見て、`node_modules` から実際のファイルを確認する
+   - `pnpm install --frozen-lockfile` から `pnpm check && pnpm test` まで通す
+
+4. 直せないものは上流待ち。修正版自体が存在しない場合。放置すると push のたびに赤い×が付くので、
+   許容するなら dismiss する
+   （`dismissed_reason` は `fix_started` / `inaccurate` / `no_bandwidth` / `not_used` / `tolerable_risk`）。
+   上流で advisory が withdraw された場合は `inaccurate` が近い
 
    ```bash
    gh api -X PATCH /repos/{owner}/{repo}/dependabot/alerts/<number> \
@@ -92,7 +110,9 @@ pnpm の**推移的依存**が脆弱なままだと、セキュリティ更新�
    ```
 
 `pnpm audit` で手元の残数も確認できる。2026-11 の実例: `pnpm update fast-uri systeminformation seroval
-ip-address brace-expansion source-map-js -r` で 23 → 2 件（残りは `minimatch` と `deepmerge`）。
+ip-address brace-expansion source-map-js -r` で 23 → 2 件。残った 2 件は `overrides` で解消した
+（`minimatch` は 11.0.7 に固定、`glob` は親の plugin を 0.9.1 に上げて依存ごと削除）。
+`deepmerge` は advisory が withdraw 済みで、alert は GitHub 側の再評価待ち。
 
 ## GitHub のセキュリティ設定
 
